@@ -11,7 +11,7 @@ expired credential — and each of those is worth getting right on its own.
 
 ## 1. Foundation
 
-- [ ] 1.1 Bring in the libraries, wire the application, and write down the
+- [x] 1.1 Bring in the libraries, wire the application, and write down the
       backend's shapes
   - Add the router, the server-state library and the request-mocking library,
     the last as a development dependency only
@@ -292,3 +292,27 @@ Everything downstream depends on these two, and neither depends on the other.
 
 Findings recorded during implementation belong here, so the next feature
 inherits them rather than rediscovering them.
+
+- **The scaffold was never in strict mode, and this task is what found it.**
+  Vite 8's TypeScript template sets `noUnusedLocals` and friends but no
+  `strict`, so `strictNullChecks` was off and `null` was assignable to
+  `string`. The first `@ts-expect-error` written for requirement 7.2 reported
+  *"Unused '@ts-expect-error' directive"* — the type was not wrong, the compiler
+  was not checking. Two days of scaffold had been type-checked by a compiler
+  that would have accepted almost anything. `strict` is now on in both project
+  references, and turning it back off fails the same test.
+- **Type-level assertions belong to `pnpm typecheck`, not to the runner.** Vite
+  transpiles without checking, exactly as `ts-jest` does in `cubeforge-api`, so
+  the whole of `types.test.ts` reported *five passing* while `tsc` reported five
+  errors. `@ts-expect-error` is the mechanism that makes those assertions rather
+  than comments: a directive with nothing to suppress is itself an error, so the
+  test fails when the shape it guards stops being wrong. **The runner cannot be
+  trusted alone for anything about a type.**
+- **The query client lives in `src/queries/client.ts`, not in `App.tsx`.** The
+  design put it in the root, which would have made "retries are off" unassertable
+  — and exporting a factory from `App.tsx` trips `react-refresh/only-export-components`.
+  It sits beside the query keys it configures. Design updated.
+- **`msw`'s postinstall is denied.** It copies a service worker into `public/`,
+  which is only used when intercepting inside a browser; these tests intercept
+  in Node. Task 1.2 is what proves the denial was safe, by intercepting a real
+  request.

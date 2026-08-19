@@ -5,13 +5,22 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **Scaffolding only.** The toolchain is complete and proven; the application is
-  a placeholder heading and a paragraph.
-- No feature has been specified. **`frontend-shell` is next**, and it is what
-  decides routing, the session, the layout and everything under `src/` beyond
-  `src/api`.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` all pass. One test.
-- Último commit: none of this — the scaffold is uncommitted.
+- **`frontend-shell` in progress: 1/19 tasks.** `spec.json` phase
+  `tasks-generated`, all three approvals `true`.
+- Tarea activa: **1.1 complete and VERIFIED** — the three libraries, the
+  application's providers, and the backend's shapes. Next actionable is **1.2**,
+  the request-mocking harness.
+- Ciclo TDD: 1.1 RED on `pnpm typecheck` (the runner reported the same file
+  passing) → GREEN → VERIFIED by five probes: nullable address, a membership
+  status, a fourth role, retries back on, and `strict` switched off. Each fails
+  what it should. 1.2 NOT_STARTED.
+- Último commit: `ca56818` docs(frontend-shell). **Uncommitted in the tree:**
+  task 1.1.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (6 passing) and `pnpm build` all
+  pass.
+- Próximo paso exacto: `/kiro-impl frontend-shell 1.2` — **with the task
+  number**, which is what selects manual mode. Manual mode has no commit step at
+  all; without numbers it commits per task and breaks the rule below.
 
 Camilo commits. Propose a message, never run `git commit`.
 
@@ -66,9 +75,15 @@ absent, so the UI never has to filter it.
   life of a session throws away the property it was built to have.
 - **`PATCH /tenants/:tenantId/members/:membershipId` answers 204, not 200.** So
   do most mutations here; only creation answers 201 with a body.
-- **`pnpm build` type-checks, `pnpm dev` does not.** Vite strips types without
-  checking them, so a broken type is invisible until the build. Run
-  `pnpm typecheck` at every checkpoint.
+- **`pnpm build` type-checks, `pnpm dev` and `pnpm test` do not.** Vite strips
+  types without checking them, so `types.test.ts` reported five passing tests
+  while `tsc` reported five errors on the same file. Run `pnpm typecheck` at
+  every checkpoint; for anything about a type, it is the only gate that counts.
+- **`strict` was missing from the scaffold** and was added in task 1.1. Vite 8's
+  template does not set it. If a new tsconfig is ever added, set it there too.
+- **Type-level assertions use `@ts-expect-error`.** A directive with nothing to
+  suppress is itself an error, which is what turns those lines into assertions.
+  Do not "clean them up".
 - **The linter forbids `fetch` outside `src/api`.** That directory does not
   exist yet — `frontend-shell` creates it. The rule is already in place so the
   first component that needs the backend cannot quietly bypass it.

@@ -6,6 +6,11 @@ allowBuilds:
   # server, the production build and the test suite with the script denied.
   # `cubeforge-api` denies it for the same reason and by the same check.
   esbuild: false
+  # Its postinstall copies a service worker into `public/`, which is only used
+  # when intercepting requests inside a browser. These tests intercept in Node,
+  # so the worker would be an unused file in every build; denied, and the
+  # harness proves it was unnecessary by actually intercepting a request.
+  msw: false
 minimumReleaseAgeExclude:
   - '@vitest/expect@4.1.11'
   - '@vitest/mocker@4.1.11'

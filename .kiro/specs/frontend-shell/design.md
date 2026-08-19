@@ -537,6 +537,7 @@ observing that nothing went wrong.
 | `src/session/SessionProvider.tsx` | `restoring` / `signed-out` / `signed-in`, sign in, sign out |
 | `src/session/useSession.ts` | The context hook |
 | `src/session/session-lifecycle.test.tsx` | Restore, discard, sign out, cache clearing |
+| `src/queries/client.ts` | The query client and its defaults, retries off |
 | `src/queries/keys.ts` | Query keys, in one place so invalidation cannot miss |
 | `src/queries/standing.ts` | `useStanding` |
 | `src/queries/members.ts` | `useMembers` and the three mutations |
@@ -563,9 +564,11 @@ observing that nothing went wrong.
 
 | Path | Change |
 |---|---|
-| `src/App.tsx` | Query client, session provider, router |
+| `src/App.tsx` | Composes the query client, the session provider and the router |
 | `test/setup.ts` | Start, reset and stop the MSW server |
 | `package.json` | `react-router`, `@tanstack/react-query`, and `msw` as a dev dependency |
+| `pnpm-workspace.yaml` | Records why `msw`'s postinstall is denied |
+| `tsconfig.app.json`, `tsconfig.node.json` | `strict`, which the scaffold lacked |
 | `.kiro/steering/structure.md` | Record the directories this feature introduces |
 
 ---
