@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useStanding } from '../queries/standing';
 import { useSelectedTenant } from '../routes/last-tenant';
+import { useSession } from '../session/useSession';
 import { TenantSwitcher } from './TenantSwitcher';
 
 /**
@@ -16,6 +17,7 @@ import { TenantSwitcher } from './TenantSwitcher';
  */
 export function AppLayout({ children }: { children: ReactNode }) {
   const { data: standing } = useStanding();
+  const { signOut } = useSession();
   const tenantId = useSelectedTenant();
 
   /**
@@ -52,6 +54,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
               selected={selected}
             />
           )}
+          {/*
+            Offered from the frame rather than from any screen. Requirement 4.3
+            asks for it where somebody belongs nowhere, but belonging nowhere is
+            not what makes it available — being signed in is, and a person who
+            reaches nothing must not be left in a room with no door.
+          */}
+          <button
+            onClick={() => {
+              void signOut();
+            }}
+          >
+            Sign out
+          </button>
         </header>
       )}
       <main>{children}</main>

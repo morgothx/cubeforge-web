@@ -5,20 +5,18 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 12/19 tasks.** Groups 1 to 4 are complete, and
-  5.1 and 5.2 are done. `spec.json` phase `tasks-generated`, all three approvals
-  `true`.
-- Tarea activa: **5.2 complete and VERIFIED** — the tenant lives in the address,
-  `last-tenant.ts` answers only "where do I send an arrival at the root", and
-  `TenantSwitcher` is in the frame. Next actionable is **5.3**, the addresses
-  that lead nowhere.
-- Ciclo TDD: 5.2 RED → GREEN → VERIFIED by nine probes. Task 4.2's deliberately
-  empty 6.4 comparison was strengthened here, now that the frame has
-  destinations. 5.3 NOT_STARTED.
-- Último commit: `6cf5bac` feat(frontend-shell): declare every address once, and put a gate in front. **Uncommitted in the tree:** task 5.2.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (130 passing, 14 files) and
+- **`frontend-shell` in progress: 13/19 tasks.** Groups 1 to 5 are complete.
+  `spec.json` phase `tasks-generated`, all three approvals `true`.
+- Tarea activa: **5.3 complete and VERIFIED** — the three dead ends, each with
+  its own words and none of them reading as a breakage. Next actionable is
+  **6.1**, the sign-in form, which replaces the stand-in at `/sign-in`.
+- Ciclo TDD: 5.3 RED → GREEN → VERIFIED by six probes. Two tests that asserted
+  an absence before the frame had rendered were strengthened to await it first.
+  6.1 NOT_STARTED.
+- Último commit: `a350fa7` feat(frontend-shell): put the selected tenant in the address, and only there. **Uncommitted in the tree:** task 5.3.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (140 passing, 15 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 5.3` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 6.1` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

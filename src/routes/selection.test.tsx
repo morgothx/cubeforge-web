@@ -152,7 +152,9 @@ describe('choosing among several', () => {
 
     renderSignedIn(<AppRoutes />, { at: '/no-tenants' });
 
-    await screen.findByText(/belong to no tenants/i);
+    // The frame is awaited first. Absence asserted while the standing is still
+    // being read is absence proved by nothing having rendered yet.
+    await screen.findByRole('button', { name: /sign out/i });
     // An empty control invites a choice that does not exist (4.3).
     expect(screen.queryByRole('navigation', { name: /tenant/i })).toBeNull();
   });

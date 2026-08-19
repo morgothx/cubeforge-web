@@ -1,6 +1,9 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
 import { useStanding } from '../queries/standing';
+import { NoTenantsScreen } from '../screens/NoTenantsScreen';
+import { NotAvailableScreen } from '../screens/NotAvailableScreen';
+import { TenantRoute } from './TenantRoute';
 import { lastTenant } from './last-tenant';
 import { RequireSession, ReturnAfterSignIn } from './RequireSession';
 
@@ -35,8 +38,10 @@ export function AppRoutes() {
         }
       >
         <Route path="/" element={<ChooseTenant />} />
-        <Route path="/t/:tenantId/members" element={<p>Members</p>} />
-        <Route path="/no-tenants" element={<p>You belong to no tenants</p>} />
+        <Route element={<TenantRoute />}>
+          <Route path="/t/:tenantId/members" element={<p>Members</p>} />
+        </Route>
+        <Route path="/no-tenants" element={<NoTenantsScreen />} />
       </Route>
 
       {/*
@@ -44,7 +49,7 @@ export function AppRoutes() {
         reason to ask somebody for a password, and telling them so costs
         nothing that a session would protect (6.2).
       */}
-      <Route path="*" element={<p>Not available</p>} />
+      <Route path="*" element={<NotAvailableScreen />} />
     </Routes>
   );
 }

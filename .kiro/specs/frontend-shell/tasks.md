@@ -182,7 +182,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
   - _Boundary: Routing, tenant switcher_
 
-- [ ] 5.3 The addresses that lead nowhere
+- [x] 5.3 The addresses that lead nowhere
   - A tenant the caller can no longer reach: say the previous selection is gone
     and offer the ones that remain
   - An address that does not exist: say it is unavailable and offer somewhere
@@ -580,3 +580,27 @@ inherits them rather than rediscovering them.
   tenant *and the role shown for it*, which is the input every later gate reads.
   The data on the screen and the navigation the role permits arrive with 6.2 and
   6.1; what is proven here is the switch itself.
+
+- **"Not presented as a failure" is a vocabulary test, like the refusal one.**
+  Three views, one shared assertion: the rendered text matches none of
+  `error|failed|went wrong|try again|reload|problem`, and no `role="alert"`
+  appears. A probe rewording the gone-tenant heading as "Something went wrong"
+  fails four tests. Without this the rule is a comment, and the next person to
+  touch the copy has nothing telling them it was deliberate.
+- **Absence asserted while a view is still loading is absence proved by
+  nothing.** Two tests here read that way — the missing switcher for a person
+  who belongs nowhere, and the sign-out button — and both were fixed to await
+  the frame first. It is the counterpart of "it threw is not an assertion": a
+  `queryBy` that runs before anything has rendered passes for every
+  implementation, including one that renders nothing at all.
+- **Signing out is offered by the frame, not by the screen that needs it.**
+  Requirement 4.3 asks for it where somebody belongs nowhere, but belonging
+  nowhere is not what makes it available — being signed in is. Putting it in the
+  screen would have meant task 6.1 either duplicating it or remembering to
+  remove it.
+- **The gone-tenant notice is the one dead end that is genuinely temporal.** A
+  membership can be revoked while the page is open, so the view must not exist
+  before the standing answers: rendering it early tells everybody their tenant
+  is gone on every page load, and it is accidentally right for a fraction of a
+  second. That is why the waiting case has a test of its own rather than being
+  folded into the others.
