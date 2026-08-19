@@ -133,9 +133,16 @@ export function handlers(): HttpHandler[] {
 
     http.get('/api/me', () => HttpResponse.json(backend.caller)),
 
-    http.get('/api/tenants/:tenantId/members', () =>
-      HttpResponse.json(backend.members),
-    ),
+    // The backend excludes revoked memberships unless asked for them, so the
+    // harness does too: a listing that always included them would let a client
+    // that forgot the query still show a meaningful active flag (7.1).
+    http.get('/api/tenants/:tenantId/members', ({ request }) => {
+      const all =
+        new URL(request.url).searchParams.get('includeInactive') === 'true';
+      return HttpResponse.json(
+        all ? backend.members : backend.members.filter(({ active }) => active),
+      );
+    }),
     http.post('/api/tenants/:tenantId/members', () =>
       HttpResponse.json(
         { membershipId: 'm-new', personId: 'person-new', role: 'viewer' },

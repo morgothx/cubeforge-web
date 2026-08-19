@@ -62,6 +62,11 @@ function renewalWouldBeWasted(): boolean {
  * Issued outside the authorized path, carrying no access token. That is what
  * makes "the renewal cannot itself be renewed" structural rather than a rule
  * somebody has to keep.
+ *
+ * This is the one place in the application outside `endpoints.ts` that names a
+ * route, and it names exactly one. The dependency direction runs
+ * `http -> endpoints`, so the function that owns `/auth/refresh` cannot be
+ * imported here without a cycle.
  */
 async function performRenewal(): Promise<void> {
   const presented = session.refreshToken();
@@ -69,21 +74,27 @@ async function performRenewal(): Promise<void> {
     throw new ApiError({ kind: 'session-ended' });
   }
 
-  const response = await fetch(`${API_BASE}/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: presented }),
-  });
-
-  if (!response.ok) {
-    // Whatever the reason, this session cannot continue. Ending it here rather
-    // than leaving a dead credential behind means the next request cannot spend
+  let renewed: Session;
+  try {
+    renewed = await unauthorized<Session>('/auth/refresh', {
+      method: 'POST',
+      body: { refreshToken: presented },
+    });
+  } catch (error) {
+    // A backend that could not be reached says nothing about the credential,
+    // and signing somebody out because their train entered a tunnel would be
+    // the wrong reading. Anything else is the backend refusing this refresh
+    // token, and this session cannot continue: ending it here rather than
+    // leaving a dead credential behind means the next request does not spend
     // another round trip discovering the same thing.
+    if (error instanceof ApiError && error.refusal.kind === 'unreachable') {
+      throw error;
+    }
     session.end();
     throw new ApiError({ kind: 'session-ended' });
   }
 
-  session.adopt((await response.json()) as Session);
+  session.adopt(renewed);
   renewedAt = Date.now();
 }
 
@@ -143,6 +154,41 @@ async function answerOf<T>(response: Response): Promise<T> {
     return undefined as T;
   }
   return (await response.json()) as T;
+}
+
+/**
+ * The path that carries no credential: signing in, renewing, signing out.
+ *
+ * None of the three can attach access — two are how access is obtained — and
+ * none of them may renew, because a renewal able to renew itself recurses
+ * without bound. Both properties are structural here rather than rules to
+ * remember: this function has no access to attach and no retry to reach.
+ */
+export async function unauthorized<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method: options.method ?? 'GET',
+      headers:
+        options.body === undefined
+          ? {}
+          : { 'Content-Type': 'application/json' },
+      ...(options.body === undefined
+        ? {}
+        : { body: JSON.stringify(options.body) }),
+      ...(options.signal === undefined ? {} : { signal: options.signal }),
+    });
+  } catch {
+    throw new ApiError({ kind: 'unreachable' });
+  }
+
+  if (!response.ok) {
+    throw new ApiError(classify(response.status, await bodyOf(response)));
+  }
+  return answerOf<T>(response);
 }
 
 /**

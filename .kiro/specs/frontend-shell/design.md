@@ -328,14 +328,27 @@ export function signIn(credentials: { email: string; password: string }): Promis
 export function refresh(refreshToken: string): Promise<Session>;
 export function signOut(refreshToken: string): Promise<void>;
 export function fetchStanding(): Promise<CallerStanding>;
-export function listMembers(tenantId: string): Promise<readonly Member[]>;
+export function listMembers(tenantId: string): Promise<readonly Member[]>;  // ?includeInactive=true
 export function inviteMember(tenantId: string, invitation: { email: string; role: Role }): Promise<void>;
 export function changeMemberRole(tenantId: string, membershipId: string, role: Role): Promise<void>;
 export function revokeMembership(tenantId: string, membershipId: string): Promise<void>;
 ```
 
-`signIn`, `refresh` and `signOut` bypass the authorized path: none carries
-access, and `refresh` must not be able to trigger a refresh.
+`signIn`, `refresh` and `signOut` bypass the authorized path through
+`unauthorized`, exported from `http.ts`: it has no credential to attach and no
+retry to reach, so "the renewal cannot renew itself" is a property of the
+function rather than a rule three callers have to keep. `http.ts` uses it for
+its own renewal, which is why that module names a route without duplicating the
+request.
+
+`listMembers` always asks for revoked memberships. The backend leaves them out
+unless asked, and requirement 7.1 asks the listing to report whether a
+membership is active — without the query that column would read `true` on every
+row it ever rendered.
+
+A failed renewal ends the session, **except** when the backend could not be
+reached: a dropped connection says nothing about the credential, and signing
+somebody out over it would cost them a password for a tunnel.
 
 ### `src/access/permissions.ts` — may this role do this here
 

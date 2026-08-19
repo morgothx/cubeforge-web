@@ -189,6 +189,23 @@ describe('access that expires mid-session', () => {
     expect(session.refreshToken()).toBeNull();
   });
 
+  it('keeps the session when the renewal could not be reached', async () => {
+    const { session, request } = await freshRequestLayer();
+    session.adopt(backend.session);
+    server.use(
+      refusals.wordless('get', '/api/me'),
+      refusals.unreachable('post', '/api/auth/refresh'),
+    );
+
+    await expect(request('/me')).rejects.toMatchObject({
+      refusal: { kind: 'unreachable' },
+    });
+    // A backend that could not be reached says nothing about the credential.
+    // Signing somebody out because their train entered a tunnel would be the
+    // wrong reading, and they would have to type a password to undo it.
+    expect(session.refreshToken()).toBe('refresh-1');
+  });
+
   it('never renews the renewal, however it fails', async () => {
     const { session, request } = await freshRequestLayer();
     session.adopt(backend.session);

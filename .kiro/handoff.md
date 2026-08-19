@@ -5,20 +5,23 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 6/19 tasks.** Groups 1 and 2 are complete. `spec.json` phase
+- **`frontend-shell` in progress: 7/19 tasks.** Groups 1 and 2 are complete. `spec.json` phase
   `tasks-generated`, all three approvals `true`.
-- Tarea activa: **3.2 complete and VERIFIED** — the authorized request. The
-  hardest task in the feature is done. Next actionable is **3.3**, one function
-  per route, which is mostly transcription.
-- Ciclo TDD: 3.2 RED → GREEN → VERIFIED by nine probes. The review found a real
-  gap the tests had not covered — a request expiring while another was already
-  renewing would have been told the thing was unavailable — and it was closed
-  with a test before the task did. 3.3 NOT_STARTED.
-- Último commit: `fb77d64` feat(frontend-shell): decide where the credential
-  lives. **Uncommitted in the tree:** task 3.2.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (62 passing, 8 files) and
+- Tarea activa: **3.3 complete and VERIFIED** — one function per route, and the
+  three that carry no credential. Next actionable is **3.4**, the session as the
+  application sees it.
+- Ciclo TDD: 3.3 RED → GREEN → VERIFIED by nine probes, including one that reads
+  the source rather than the behaviour, because "a URL is written down once"
+  cannot be seen in a response. The review found two real things: `listMembers`
+  was not asking for revoked memberships, which would have made requirement
+  7.1's active column read `true` on every row, and a failed renewal was ending
+  the session even when the backend simply could not be reached. Both closed
+  with a test first. 3.4 NOT_STARTED.
+- Último commit: `d164f96` feat(frontend-shell): make a request that survives
+  its credential expiring. **Uncommitted in the tree:** task 3.3.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (78 passing, 9 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 3.3` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 3.4` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

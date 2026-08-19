@@ -107,7 +107,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
   - _Boundary: Authorized request_
 
-- [ ] 3.3 One function per route, and three that bypass the authorized path
+- [x] 3.3 One function per route, and three that bypass the authorized path
   - Every route the feature uses gets exactly one function, so a URL is written
     down once
   - Signing in, renewing and signing out carry no access and must not travel
@@ -434,3 +434,29 @@ inherits them rather than rediscovering them.
 - **A failed renewal ends the session immediately.** Leaving the dead credential
   in place would make the next request spend another round trip discovering the
   same thing, and the person would watch two failures instead of one.
+
+- **A behavioural test cannot see "a URL is written down once", so a test reads
+  the source.** A component with its own `fetch('/api/me')` answers exactly the
+  same as one calling `fetchStanding`. `import.meta.glob` with `?raw` over
+  `src/**` gives the file contents, and the assertion is the *list of files
+  naming a route*: `endpoints.ts` and `http.ts`, nothing else. Adding a route
+  literal to `App.tsx` fails it. Same family as 2.2's `RoleAdmission` — when the
+  property is structural, assert the structure or admit it is unenforced.
+- **`listMembers` must ask for the revoked, and review is what found it.** The
+  backend excludes inactive memberships unless `includeInactive=true`, while
+  requirement 7.1 asks the screen to show whether a membership is active. The
+  two only contradict each other at the line that builds the URL, and the
+  design's signature had no query at all. The harness now filters the way the
+  backend does, so forgetting the query fails a test rather than producing a
+  column that reads `true` on every row.
+- **A backend that could not be reached no longer ends the session.** Factoring
+  the credential-free path out of `http.ts` exposed that a failed renewal ended
+  the session whatever the reason — including a dropped connection, which says
+  nothing about the credential. `unreachable` now propagates and the session
+  survives; everything else is the backend refusing this refresh token, and that
+  session really is over.
+- **`unauthorized` is why the three exceptions are structural.** Signing in,
+  renewing and signing out share one function that has no credential to attach
+  and no retry to reach, rather than three functions each remembering not to.
+  The renewal uses it too, which leaves `http.ts` naming a route but not
+  duplicating the request.
