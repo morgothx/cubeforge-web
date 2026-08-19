@@ -559,13 +559,16 @@ observing that nothing went wrong.
 | `test/handlers.ts` | MSW handlers, one per endpoint, from the real contracts |
 | `test/server.ts` | The MSW server for Node |
 | `test/render.tsx` | Renders a subject inside providers and a router at a given address |
+| `test/harness.test.tsx` | The harness proving itself: interception, counting, refusal bodies |
 
 ### Modified
 
 | Path | Change |
 |---|---|
 | `src/App.tsx` | Composes the query client, the session provider and the router |
-| `test/setup.ts` | Start, reset and stop the MSW server |
+| `test/setup.ts` | Start, reset and stop the MSW server; refuse unhandled requests distinctively |
+| `vite.config.ts` | Collect tests from both roots |
+| `eslint.config.mjs` | Two rules the harness's idioms need |
 | `package.json` | `react-router`, `@tanstack/react-query`, and `msw` as a dev dependency |
 | `pnpm-workspace.yaml` | Records why `msw`'s postinstall is denied |
 | `tsconfig.app.json`, `tsconfig.node.json` | `strict`, which the scaffold lacked |

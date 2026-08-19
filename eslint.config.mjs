@@ -60,9 +60,26 @@ export default tseslint.config(
   },
 
   {
-    files: ['src/**/*.test.{ts,tsx}', 'test/**/*.ts'],
+    files: ['src/**/*.test.{ts,tsx}', 'test/**/*.{ts,tsx}'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
+    },
+    rules: {
+      // Test helpers are never a hot-reload boundary, and this rule cannot see
+      // through a re-export of the testing library.
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+
+  {
+    rules: {
+      // `const { email, ...rest } = member` is how a field is *omitted*, which
+      // this codebase does deliberately — the backend omits an address rather
+      // than emptying it, and the fixtures have to be able to say so.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { ignoreRestSiblings: true, argsIgnorePattern: '^_' },
+      ],
     },
   },
 );

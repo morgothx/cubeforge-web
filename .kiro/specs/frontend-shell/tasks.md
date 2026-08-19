@@ -27,7 +27,7 @@ expired credential — and each of those is worth getting right on its own.
   - _Requirements: 7.2, 9.3_
   - _Boundary: Types, application root_
 
-- [ ] 1.2 Stand up a harness that answers the way the real backend does
+- [x] 1.2 Stand up a harness that answers the way the real backend does
   - One handler per route, written from the contracts recorded during
     discovery, able to answer every refusal kind including the refusal that
     carries no reason at all
@@ -316,3 +316,28 @@ inherits them rather than rediscovering them.
   which is only used when intercepting inside a browser; these tests intercept
   in Node. Task 1.2 is what proves the denial was safe, by intercepting a real
   request.
+
+- **A test file in `test/` was silently never collected, and nothing said so.**
+  The scaffold's `include` pattern named only `src/`, so the first version of
+  `harness.test.tsx` reported the suite green while running none of it. The
+  pattern now covers both roots. **This hazard has no test that can catch it
+  from the inside** — a dropped root simply reports fewer files passing, which
+  reads like success. When adding a test directory, check the file count moved.
+- **"It threw" is not an assertion, and a probe caught it.** The test for
+  refusing an unhandled request asserted only that the promise rejected — and
+  in this environment nothing is listening on the address, so it rejected
+  whether or not the harness had a policy at all. Switching the policy to
+  `bypass` failed nothing. The harness now throws its own named error, MSW
+  surfaces it as a distinctive answer, and the test asserts *that*. Same shape
+  as the API's "an error that echoes its input can answer for its own reason".
+- **The refusal bodies are copied byte for byte from the backend.** A handler
+  answering a friendlier `404` would make authorization and absence
+  distinguishable in tests while they stay indistinguishable in production —
+  which would let a component branch on something real code can never see.
+  Changing the message fails a test.
+- **`msw`'s denied postinstall was safe**, as task 1.1 predicted: interception in
+  Node needs no service worker, and the harness proves it by intercepting.
+- **Two lint rules the harness needs.** `ignoreRestSiblings`, because
+  `const { email, ...rest }` is how this codebase *omits* a field — the shape
+  the backend itself uses — and `react-refresh/only-export-components` off for
+  test helpers, which are never a hot-reload boundary.

@@ -28,6 +28,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    // Both roots, because a test file that is silently never collected is
+    // worse than no test at all — it reads as coverage. The harness lives in
+    // `test/`, and the first version of this pattern named only `src/`.
+    include: ['src/**/*.test.{ts,tsx}', 'test/**/*.test.{ts,tsx}'],
   },
 });

@@ -5,20 +5,20 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 1/19 tasks.** `spec.json` phase
+- **`frontend-shell` in progress: 2/19 tasks.** `spec.json` phase
   `tasks-generated`, all three approvals `true`.
-- Tarea activa: **1.1 complete and VERIFIED** — the three libraries, the
-  application's providers, and the backend's shapes. Next actionable is **1.2**,
-  the request-mocking harness.
-- Ciclo TDD: 1.1 RED on `pnpm typecheck` (the runner reported the same file
-  passing) → GREEN → VERIFIED by five probes: nullable address, a membership
-  status, a fourth role, retries back on, and `strict` switched off. Each fails
-  what it should. 1.2 NOT_STARTED.
-- Último commit: `ca56818` docs(frontend-shell). **Uncommitted in the tree:**
-  task 1.1.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (6 passing) and `pnpm build` all
-  pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 1.2` — **with the task
+- Tarea activa: **1.2 complete and VERIFIED** — the request harness: handlers
+  per route from the real contracts, a request counter, and a render helper.
+  Next actionable is **2.1**, the refusal vocabulary.
+- Ciclo TDD: 1.2 RED (the file was not even collected until the include pattern
+  was fixed) → GREEN → VERIFIED by six probes. One of them found a test passing
+  for the wrong reason and it was repaired before the task closed. 2.1
+  NOT_STARTED.
+- Último commit: `d87a604` feat(frontend-shell): wire the application.
+  **Uncommitted in the tree:** task 1.2.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (12 passing, 4 files) and
+  `pnpm build` all pass.
+- Próximo paso exacto: `/kiro-impl frontend-shell 2.1` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
@@ -81,6 +81,15 @@ absent, so the UI never has to filter it.
   every checkpoint; for anything about a type, it is the only gate that counts.
 - **`strict` was missing from the scaffold** and was added in task 1.1. Vite 8's
   template does not set it. If a new tsconfig is ever added, set it there too.
+- **Check the test *file* count, not just the passing count.** A test file
+  outside `vitest`'s `include` pattern is never collected, and the suite reports
+  green with it missing. It happened once already, to the harness itself.
+- **The harness refuses unhandled requests with its own named error**, not
+  MSW's built-in `'error'` strategy — in this environment an unhandled request
+  fails anyway, so a test asserting "it threw" would pass with the policy off.
+  Assert the named message.
+- **Refusal bodies in `test/handlers.ts` are copied byte for byte** from the
+  backend's filter. Do not tidy them; the identical `404` is the property.
 - **Type-level assertions use `@ts-expect-error`.** A directive with nothing to
   suppress is itself an error, which is what turns those lines into assertions.
   Do not "clean them up".
