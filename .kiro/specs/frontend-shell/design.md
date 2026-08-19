@@ -419,6 +419,15 @@ export function useRevokeMembership(tenantId: string): UseMutationResult<void, A
 Retries are off at the Query level. The single retry this design allows belongs
 to `request`, which is the only layer that knows *why* it is retrying (3.4).
 
+`useStanding` is switched off until the session is established — not merely
+until a stored token exists. A read fired during the restore carries no access
+token, is answered with the wordless `404`, and sends the request layer off to
+renew a credential the provider is already exchanging; two exchanges of one
+rotating refresh token invalidate the family, so the read would end the session
+it was reading for. It is held current once obtained (`staleTime: Infinity`),
+because who the caller is changes only when somebody changes it, and the two
+ways to do that from here invalidate the key themselves (4.5).
+
 Every mutation invalidates the members list (7.5). The two that can change the
 caller's own standing — changing a role, revoking a membership — also invalidate
 the standing (4.5).

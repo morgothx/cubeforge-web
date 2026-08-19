@@ -15,7 +15,9 @@ import type { CallerStanding } from '../src/api/types';
  */
 describe('the request harness', () => {
   it('intercepts the request function this environment actually provides', async () => {
-    const response = await fetch('/api/me');
+    const response = await fetch('/api/me', {
+      headers: { Authorization: 'Bearer access-1' },
+    });
 
     // Not "it did not throw" — the fixture came back, so the interception is
     // real and the body is the shape the backend answers with.
@@ -23,6 +25,20 @@ describe('the request harness', () => {
     const standing = (await response.json()) as CallerStanding;
     expect(standing.email).toBe(backend.caller.email);
     expect(standing.memberships).toHaveLength(2);
+  });
+
+  it('refuses a read that arrives without a credential', async () => {
+    const response = await fetch('/api/me');
+
+    // The guard answers a caller it does not recognise with the same wordless
+    // 404 as one it will not admit. A harness that answered anyway would hide
+    // every read fired before the session exists — they would look healthy
+    // here and be refused in production.
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      statusCode: 404,
+      message: 'the requested record does not exist',
+    });
   });
 
   it('counts how many times a route was asked', async () => {

@@ -5,22 +5,23 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 8/19 tasks.** Groups 1, 2 and 3 are complete.
+- **`frontend-shell` in progress: 9/19 tasks.** Groups 1, 2 and 3 are complete.
   `spec.json` phase `tasks-generated`, all three approvals `true`.
-- Tarea activa: **3.4 complete and VERIFIED** — the session as the application
-  sees it, and it is now mounted in `App.tsx`. Next actionable is **4.1**, who
-  the caller is.
-- Ciclo TDD: 3.4 RED → GREEN → VERIFIED by nine probes. Two findings worth
-  carrying: `session.ts` now reads the stored refresh token every time instead
-  of snapshotting it at module load, and one guard against StrictMode's double
-  restore is reasoned rather than tested — jsdom cannot produce the ordering it
-  protects against, and both the code and the test say so. 4.1 NOT_STARTED.
-- Último commit: `2503b70` (subject `Commit propuesto` — a paste slip, worth
-  fixing with a `rebase -i` alongside the scaffold commit `2e267be`, which has
-  the same subject). **Uncommitted in the tree:** task 3.4.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (90 passing, 10 files) and
+- Tarea activa: **4.1 complete and VERIFIED** — the caller's standing, read once
+  per session and never written down. Next actionable is **4.2**, showing the
+  caller their own identity.
+- Ciclo TDD: 4.1 RED → GREEN → VERIFIED by seven probes. One probe found that
+  the harness answered `/api/me` without a credential; every authorized route
+  now refuses an uncredentialed request the way the guard does, which is what
+  makes "do not read the standing during the restore" a testable claim. 4.2
+  NOT_STARTED.
+- Último commit: `f02c0f3` feat(frontend-shell): three states, and the two
+  transitions nothing else makes. **Uncommitted in the tree:** task 4.1, plus
+  the amended commit rule in `CLAUDE.md` — Camilo is folding that into the next
+  task's commit on purpose, so its message says nothing about it.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (101 passing, 11 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 4.1` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 4.2` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
@@ -28,10 +29,14 @@ Camilo commits. Propose a message, never run `git commit`.
 
 ## The rule that overrides everything
 
-No agent runs `git commit`, `git push`, or anything that creates a commit, in
-either repository, ever — including when a skill suggests it. Reach a
-checkpoint, summarize, propose a Conventional Commits message in English, and
-wait.
+No agent runs `git commit`, `git push`, or anything that creates or rewrites a
+commit, in either repository, **on its own initiative** — including when a skill
+suggests it. Reach a checkpoint, summarize, propose a Conventional Commits
+message in English, and wait.
+
+Camilo can lift this for one named task, and only that one: when he explicitly
+asks for a rebase, an amend or a push, do it. The permission does not carry to
+the next task, and "listo el commit" is a report, not a grant.
 
 ## What the backend already offers
 

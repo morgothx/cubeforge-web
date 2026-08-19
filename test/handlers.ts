@@ -119,6 +119,24 @@ export const refusals = {
 };
 
 /**
+ * Refuses anything arriving without a credential, exactly as the guard does.
+ *
+ * The backend's guard answers a caller it does not recognise with the same
+ * wordless `404` as a caller it will not admit. A harness that answered these
+ * routes regardless would hide a whole class of mistake — a read fired before
+ * the session exists looks perfectly healthy until production, where it is
+ * refused and sends the request layer off to renew a credential nobody has.
+ */
+function authorized(
+  answer: () => Response,
+): (info: { request: Request }) => Response {
+  return ({ request }) =>
+    request.headers.get('Authorization') === null
+      ? HttpResponse.json(REFUSED, { status: 404 })
+      : answer();
+}
+
+/**
  * One handler per route the feature uses. A test that needs a different answer
  * overrides the single route it cares about rather than restating the rest.
  */
@@ -131,31 +149,40 @@ export function handlers(): HttpHandler[] {
       () => new HttpResponse(null, { status: 204 }),
     ),
 
-    http.get('/api/me', () => HttpResponse.json(backend.caller)),
+    http.get(
+      '/api/me',
+      authorized(() => HttpResponse.json(backend.caller)),
+    ),
 
     // The backend excludes revoked memberships unless asked for them, so the
     // harness does too: a listing that always included them would let a client
     // that forgot the query still show a meaningful active flag (7.1).
     http.get('/api/tenants/:tenantId/members', ({ request }) => {
+      if (request.headers.get('Authorization') === null) {
+        return HttpResponse.json(REFUSED, { status: 404 });
+      }
       const all =
         new URL(request.url).searchParams.get('includeInactive') === 'true';
       return HttpResponse.json(
         all ? backend.members : backend.members.filter(({ active }) => active),
       );
     }),
-    http.post('/api/tenants/:tenantId/members', () =>
-      HttpResponse.json(
-        { membershipId: 'm-new', personId: 'person-new', role: 'viewer' },
-        { status: 201 },
+    http.post(
+      '/api/tenants/:tenantId/members',
+      authorized(() =>
+        HttpResponse.json(
+          { membershipId: 'm-new', personId: 'person-new', role: 'viewer' },
+          { status: 201 },
+        ),
       ),
     ),
     http.patch(
       '/api/tenants/:tenantId/members/:membershipId',
-      () => new HttpResponse(null, { status: 204 }),
+      authorized(() => new HttpResponse(null, { status: 204 })),
     ),
     http.delete(
       '/api/tenants/:tenantId/members/:membershipId',
-      () => new HttpResponse(null, { status: 204 }),
+      authorized(() => new HttpResponse(null, { status: 204 })),
     ),
   ];
 }

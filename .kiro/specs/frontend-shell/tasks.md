@@ -135,7 +135,7 @@ Everything downstream depends on these two, and neither depends on the other.
 
 ## 4. Who the caller is
 
-- [ ] 4.1 Read the caller's standing
+- [x] 4.1 Read the caller's standing
   - Ask the backend who the caller is and where they may act, before showing
     anything that depends on the answer
   - Render the tenants it returns without filtering them: the backend already
@@ -490,3 +490,24 @@ inherits them rather than rediscovering them.
   discards a credential the backend *will not exchange*; one it never answered
   about has not been judged. Keeping it costs a sign-in form now and restores on
   the next reload; discarding it costs a password for a dropped connection.
+
+- **The harness answered `/api/me` without a credential, and that hid a real
+  hazard.** A probe enabling the standing read on "a refresh token exists"
+  rather than "the session is established" failed nothing, because the fixture
+  answered an unauthenticated read with `200`. In production that read is
+  refused with the wordless `404`, which sends the request layer off to renew a
+  credential the provider is already exchanging — two exchanges of one rotating
+  token, and the read ends the session it was reading for. Every authorized
+  route in the harness now refuses a request with no `Authorization`, the same
+  way the guard does, and the probe fails four tests.
+- **jsdom produces none of React Query's automatic re-reads.** A remount and a
+  dispatched focus event both leave the request count at one whether the answer
+  is held current or goes stale immediately, so two tests written that way
+  passed with `staleTime` removed. The claim is asserted on the cache entry the
+  refetches actually consult — `isStale()` is `false` — and the test says why it
+  is written that way. Same shape as 2.2 and 3.4: the environment cannot show
+  it, so assert the thing the behaviour reads.
+- **A disabled query is `pending` and `idle` at once.** React Query's way of
+  saying nobody asked. A screen reading `isPending` alone would show a spinner
+  to somebody who is signed out, which is why every consumer of `useStanding`
+  belongs behind a signed-in route.
