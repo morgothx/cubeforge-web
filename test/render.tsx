@@ -26,13 +26,15 @@ export * from '@testing-library/react';
  */
 export function renderAt(
   subject: ReactElement,
-  options: { at?: string; client?: QueryClient } = {},
+  options: { at?: string; state?: unknown; client?: QueryClient } = {},
 ): RenderResult {
   const queryClient = options.client ?? createQueryClient();
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[options.at ?? '/']}>
+      <MemoryRouter
+        initialEntries={[{ pathname: options.at ?? '/', state: options.state }]}
+      >
         {subject}
       </MemoryRouter>
     </QueryClientProvider>,
@@ -53,7 +55,7 @@ export function renderAt(
  */
 export function renderSignedIn(
   subject: ReactElement,
-  options: { at?: string; client?: QueryClient } = {},
+  options: { at?: string; state?: unknown; client?: QueryClient } = {},
 ): RenderResult & { client: QueryClient } {
   localStorage.setItem(REFRESH_STORAGE_KEY, 'refresh-1');
   const client = options.client ?? createQueryClient();
@@ -64,7 +66,7 @@ export function renderSignedIn(
       <StrictMode>
         <SessionProvider>{subject}</SessionProvider>
       </StrictMode>,
-      { at: options.at, client },
+      { at: options.at, state: options.state, client },
     ),
   };
 }

@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { BrowserRouter } from 'react-router';
 import { createQueryClient } from './queries/client';
+import { AppRoutes } from './routes/AppRoutes';
 import { SessionProvider } from './session/SessionProvider';
 
 /**
@@ -15,10 +16,9 @@ import { SessionProvider } from './session/SessionProvider';
  * the cache when a session ends, and every route below it may ask which of the
  * three states applies.
  *
- * The page itself is still a placeholder. Routing arrives with the route table
- * in task 5.1; what exists here is the frame the rest of the feature is built
- * inside, which is worth having early precisely because everything below it
- * assumes it.
+ * What each address renders is still partly a stand-in — the form and the
+ * members screen arrive in tasks 6.1 and 6.2 — but the table, the gate and the
+ * frame around them are real.
  */
 export function App() {
   const [queryClient] = useState(createQueryClient);
@@ -27,10 +27,7 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <BrowserRouter>
-          <main>
-            <h1>CubeForge</h1>
-            <p>Multi-tenant analytics. The dashboard starts here.</p>
-          </main>
+          <AppRoutes />
         </BrowserRouter>
       </SessionProvider>
     </QueryClientProvider>

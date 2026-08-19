@@ -156,7 +156,7 @@ Everything downstream depends on these two, and neither depends on the other.
 
 ## 5. Getting to a tenant
 
-- [ ] 5.1 The route table, and the gate in front of it
+- [x] 5.1 The route table, and the gate in front of it
   - Every address the feature serves, declared in one place
   - While a session is being restored, show neither the form nor the
     application; while signed out, send the person to the form and **remember
@@ -532,3 +532,23 @@ inherits them rather than rediscovering them.
   refresh token before the first render and lets the provider exchange it, so
   the subject meets the real restore rather than a faked state — which is what
   makes a read fired too early show up as a request instead of as nothing.
+
+- **Both halves of "you arrive where you were going" live in one file.** Sending
+  somebody to the form is one mechanism and bringing them back is another; split
+  across the gate and the sign-in screen they become two chances to lose the
+  destination, and the form would have to know about destinations, which is not
+  its subject. `RequireSession` remembers and `ReturnAfterSignIn` returns.
+- **"Renders nothing while restoring" needed the address asserted, not the
+  screen.** A probe treating `restoring` as signed out failed nothing: the gate
+  redirected to the form, and the mirror — which also renders nothing while
+  restoring — hid it. On screen the two are identical; what differs is that the
+  address flapped and the wrong component was holding the line. The test now
+  renders the location outside the table and asserts nobody was sent anywhere.
+- **The guard on the remembered address had no test, and a probe found that.**
+  Router state is written by this module alone, so `from` cannot today be
+  anything but one of our paths — which is exactly how an untested guard
+  survives until the day it matters. `renderAt` now accepts router state, and a
+  remembered `//example.com` lands on the root.
+- **`useLocation().state` is `any`, and destructuring it spreads that.** Bound
+  as `unknown` instead, so the check that turns a remembered string into a
+  destination is the only thing that can widen it.

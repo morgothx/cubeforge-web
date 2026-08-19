@@ -2,17 +2,15 @@ import { render, screen } from '@testing-library/react';
 import { App } from './App';
 
 /**
- * One test, and its job is the toolchain rather than the component: JSX
- * compiles, jsdom renders, Testing Library queries, and the jest-dom matchers
- * are registered. A scaffold whose tests were never run is a scaffold that
- * does not work yet.
+ * One test, and its job is the assembly rather than any component: the query
+ * client, the session and the router are composed in the right order and the
+ * table renders. Each of those is tested properly elsewhere; what only this can
+ * catch is a provider mounted inside something that needed it.
  */
 describe('the application', () => {
-  it('renders its name', () => {
+  it('asks a person with no session for a password', async () => {
     render(<App />);
 
-    expect(
-      screen.getByRole('heading', { name: 'CubeForge' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/sign in/i)).toBeInTheDocument();
   });
 });

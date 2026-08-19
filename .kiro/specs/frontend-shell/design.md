@@ -451,6 +451,13 @@ so it is not mistaken for duplicated state.
 
 - `RequireSession` renders nothing while `restoring`, redirects to `/sign-in`
   while `signed-out` — remembering the attempted address (2.5, 2.6).
+- `ReturnAfterSignIn`, its mirror, wraps the form: once there is a session it
+  goes to the remembered address, or to `/` if nothing was interrupted. Both
+  halves live in one file so the form never learns about destinations, and the
+  remembered value is checked to be one of our own paths before it becomes one.
+- The gate wraps the *table*, not each screen, and `/sign-in` and the unknown
+  address sit outside it — an address that does not exist is no reason to ask
+  somebody for a password.
 - `TenantRoute` resolves `:tenantId` against the standing. If it is not among the
   caller's memberships it renders the "no longer available" notice and offers the
   tenants that are (5.5).
