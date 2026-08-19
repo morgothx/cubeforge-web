@@ -304,6 +304,13 @@ answers `404` too. Both alternative readings are worse: never refreshing signs
 people out every fifteen minutes, and treating `404` as expiry signs them out on
 every legitimate refusal.
 
+**A request whose credential was renewed underneath it just retries.** If the
+access token in hand differs from the one the attempt presented, somebody else
+found the expiry first and renewed while this request was in flight. Retrying
+with the new credential and renewing nothing is the only correct reading —
+found during task 3.2's review, where the cooldown would otherwise have
+reported `unavailable` to a request that was merely unlucky with its timing.
+
 **Access that was just renewed is not renewed again.** Without this, a screen
 holding several genuinely refused resources rotates the refresh token once per
 resource — each `404` looks exactly like expiry to a layer that cannot see the

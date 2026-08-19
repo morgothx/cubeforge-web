@@ -89,7 +89,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 1.6, 2.1, 2.4_
   - _Boundary: Session state_
 
-- [ ] 3.2 Make a request that survives its credential expiring
+- [x] 3.2 Make a request that survives its credential expiring
   - Attach access; when the answer could mean expiry and a session is held,
     renew once and retry once, so the person sees only the result
   - Serialize renewals, so several requests expiring together produce one
@@ -407,3 +407,30 @@ inherits them rather than rediscovering them.
   half-finished write, or somebody else's bug all produce one, and none of them
   should be a crash on the first paint. Returning the raw `getItem` result fails
   a test.
+
+- **The cooldown had a hole, and the review found it rather than a test.** A
+  request that expires while another is already renewing resumes *after* that
+  renewal completes: the renewal promise is gone, the cooldown is active, and
+  the request would be told the thing is unavailable — refused for no reason
+  beyond unlucky timing. The fix is not a longer window but a different
+  question: `send` now reports which credential it actually presented, and if
+  the one in hand differs, the request simply retries and renews nothing. The
+  probe that removes that comparison fails a test written for it.
+- **Serialization is not an optimization here, it is correctness.** The backend
+  rotates refresh tokens and invalidates the whole family when a used one is
+  presented, so three unserialized renewals would have the second one *end* the
+  session the first was rescuing. That is why the assertion is a request count:
+  three renewals answer exactly the same as one, right up until the session
+  dies.
+- **The renewal cannot renew itself, structurally rather than by rule.** It is
+  issued with a bare `fetch` inside this module, carrying no access token, and
+  it cannot reach `request`. The probe that routes it through the authorized
+  path does not fail an assertion — it **times out**, which is the recursion
+  actually happening.
+- **`http.ts` cannot import `endpoints.ts`,** which is why the renewal is a raw
+  `fetch` here. The dependency direction runs `http → endpoints`, and task 3.3
+  builds the latter. This is the one place in the application outside
+  `endpoints.ts` that names a route, and it names exactly one.
+- **A failed renewal ends the session immediately.** Leaving the dead credential
+  in place would make the next request spend another round trip discovering the
+  same thing, and the person would watch two failures instead of one.

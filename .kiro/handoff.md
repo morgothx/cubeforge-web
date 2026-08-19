@@ -5,19 +5,20 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 5/19 tasks.** Groups 1 and 2 are complete. `spec.json` phase
+- **`frontend-shell` in progress: 6/19 tasks.** Groups 1 and 2 are complete. `spec.json` phase
   `tasks-generated`, all three approvals `true`.
-- Tarea activa: **3.1 complete and VERIFIED** — the credential's two halves:
-  access in memory, refresh in storage. Next actionable is **3.2**, the
-  authorized request, which is the hardest task in the feature: renew once,
-  retry once, serialize concurrent renewals, and do not renew what was just
-  renewed. `_Depends: 2.1, 3.1_`, both now `[x]`.
-- Ciclo TDD: 3.1 RED → GREEN → VERIFIED by six probes. 3.2 NOT_STARTED.
-- Último commit: `f0a2f43` feat(frontend-shell): one answer to what a role may
-  do here. **Uncommitted in the tree:** task 3.1.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (46 passing, 7 files) and
+- Tarea activa: **3.2 complete and VERIFIED** — the authorized request. The
+  hardest task in the feature is done. Next actionable is **3.3**, one function
+  per route, which is mostly transcription.
+- Ciclo TDD: 3.2 RED → GREEN → VERIFIED by nine probes. The review found a real
+  gap the tests had not covered — a request expiring while another was already
+  renewing would have been told the thing was unavailable — and it was closed
+  with a test before the task did. 3.3 NOT_STARTED.
+- Último commit: `fb77d64` feat(frontend-shell): decide where the credential
+  lives. **Uncommitted in the tree:** task 3.2.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (62 passing, 8 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 3.2` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 3.3` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
@@ -89,6 +90,14 @@ absent, so the UI never has to filter it.
   Assert the named message.
 - **Refusal bodies in `test/handlers.ts` are copied byte for byte** from the
   backend's filter. Do not tidy them; the identical `404` is the property.
+- **`request` renews on a `404`, because this backend gives expiry and refusal
+  the same answer.** Three guards keep that from being ruinous: one renewal at a
+  time for everybody, no renewal within five seconds of the last, and a plain
+  retry when the credential changed under the request. Removing any of the three
+  fails a test. Do not "simplify" them.
+- **The renewal is a bare `fetch` inside `http.ts`, not an endpoint call.** That
+  is what makes it unable to renew itself. Routing it through `request` does not
+  fail a test — it hangs.
 - **`session` is a module value, not React state, on purpose.** The request
   layer needs whichever token is current *now*; a token read through a closure
   is one render stale, and the render it would be stale during is the renewal
