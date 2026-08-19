@@ -5,20 +5,19 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 4/19 tasks.** Group 2 is complete. `spec.json` phase
+- **`frontend-shell` in progress: 5/19 tasks.** Groups 1 and 2 are complete. `spec.json` phase
   `tasks-generated`, all three approvals `true`.
-- Tarea activa: **2.2 complete and VERIFIED** — the permission table. Next
-  actionable is **3.1**, where the credential lives, which opens the hard part
-  of this feature: the session.
-- Ciclo TDD: 2.2 RED → GREEN → VERIFIED by seven probes. One of them passed
-  first time and exposed that the task's central claim was compile-time rather
-  than behavioural; a type assertion was added and the same probe now fails
-  `typecheck`. 3.1 NOT_STARTED.
-- Último commit: `867f03a` feat(frontend-shell): one vocabulary. **Uncommitted
-  in the tree:** task 2.2.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (38 passing, 6 files) and
+- Tarea activa: **3.1 complete and VERIFIED** — the credential's two halves:
+  access in memory, refresh in storage. Next actionable is **3.2**, the
+  authorized request, which is the hardest task in the feature: renew once,
+  retry once, serialize concurrent renewals, and do not renew what was just
+  renewed. `_Depends: 2.1, 3.1_`, both now `[x]`.
+- Ciclo TDD: 3.1 RED → GREEN → VERIFIED by six probes. 3.2 NOT_STARTED.
+- Último commit: `f0a2f43` feat(frontend-shell): one answer to what a role may
+  do here. **Uncommitted in the tree:** task 3.1.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (46 passing, 7 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 3.1` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 3.2` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
@@ -90,6 +89,12 @@ absent, so the UI never has to filter it.
   Assert the named message.
 - **Refusal bodies in `test/handlers.ts` are copied byte for byte** from the
   backend's filter. Do not tidy them; the identical `404` is the property.
+- **`session` is a module value, not React state, on purpose.** The request
+  layer needs whichever token is current *now*; a token read through a closure
+  is one render stale, and the render it would be stale during is the renewal
+  the whole design is built around. Do not "modernize" it into a context.
+- **Assert against the whole of storage, never one key.** "We did not write it
+  under our key" is not the property; "it is nowhere a script can read it" is.
 - **`src/access/permissions.ts` mirrors the backend's `@Access` declarations by
   hand.** There is no contract test across the two repositories, so the test's
   copy of those declarations is the closest thing to one. If a role changes in

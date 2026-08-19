@@ -76,7 +76,7 @@ Everything downstream depends on these two, and neither depends on the other.
 
 ## 3. A session that survives
 
-- [ ] 3.1 Decide where the credential lives
+- [x] 3.1 Decide where the credential lives
   - Hold the short-lived access in memory and persist only the long-lived
     refresh, so a reload can recover the session without the shorter credential
     ever being written down
@@ -386,3 +386,24 @@ inherits them rather than rediscovering them.
   here the backend admits both to the read and neither to the writes. Asserted
   so nobody "fixes" the apparent redundancy by inventing a distinction the
   guards do not make.
+
+- **The storage assertions read the whole of storage, not the one key.** "We did
+  not write the access token under *our* key" is a weaker claim than "the access
+  token is nowhere a script can read it", and only the second is the property
+  worth having. `JSON.stringify({ ...localStorage })` and a substring check does
+  it, and it catches a second key added later by someone with good intentions.
+  A probe writing the access token under `cubeforge.access` fails it.
+- **The reload test discards the module's memory rather than trusting that it
+  would be discarded.** `vi.resetModules()` plus a dynamic re-import is what
+  makes it a test of the two tokens being kept *differently*; without it the
+  in-memory access token would still be there and the assertion would prove
+  nothing. This is the one place in the suite where module identity matters.
+- **`sessionExpiresAt` is deliberately not persisted, and a test says so.** It
+  comes back from the backend and nothing reads it. A stored value nobody reads
+  is one somebody eventually trusts by mistake — and the design's reason for
+  ignoring it stands: renewing reactively on a refusal is correct even when the
+  client's clock is wrong.
+- **An empty stored entry is not a session.** A cleared browser, a
+  half-finished write, or somebody else's bug all produce one, and none of them
+  should be a crash on the first paint. Returning the raw `getItem` result fails
+  a test.

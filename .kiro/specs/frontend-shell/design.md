@@ -260,6 +260,8 @@ export function describeRefusal(refusal: Refusal): string;
  * a person out on every reload — was rejected as a product decision. Rotation
  * on the backend bounds how long a stolen token is worth having.
  */
+export const REFRESH_STORAGE_KEY = 'cubeforge.refresh';
+
 export interface SessionState {
   accessToken(): string | null;
   refreshToken(): string | null;
