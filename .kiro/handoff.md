@@ -5,20 +5,20 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 3/19 tasks.** `spec.json` phase
+- **`frontend-shell` in progress: 4/19 tasks.** Group 2 is complete. `spec.json` phase
   `tasks-generated`, all three approvals `true`.
-- Tarea activa: **2.1 complete and VERIFIED** — the refusal vocabulary, the one
-  place that reads a status code and the one place that puts a refusal into
-  words. Next actionable is **2.2**, the permission table (marked `(P)`; it
-  depends on nothing but the types).
-- Ciclo TDD: 2.1 RED → GREEN → VERIFIED by six probes, including the one that
-  matters most: adding a helpful-sounding explanation to the wordless refusal
-  turns a test red. 2.2 NOT_STARTED.
-- Último commit: task 1.2 of `frontend-shell`. **Uncommitted in the tree:**
-  task 2.1.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (29 passing, 5 files) and
+- Tarea activa: **2.2 complete and VERIFIED** — the permission table. Next
+  actionable is **3.1**, where the credential lives, which opens the hard part
+  of this feature: the session.
+- Ciclo TDD: 2.2 RED → GREEN → VERIFIED by seven probes. One of them passed
+  first time and exposed that the task's central claim was compile-time rather
+  than behavioural; a type assertion was added and the same probe now fails
+  `typecheck`. 3.1 NOT_STARTED.
+- Último commit: `867f03a` feat(frontend-shell): one vocabulary. **Uncommitted
+  in the tree:** task 2.2.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (38 passing, 6 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 2.2` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 3.1` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
@@ -90,6 +90,11 @@ absent, so the UI never has to filter it.
   Assert the named message.
 - **Refusal bodies in `test/handlers.ts` are copied byte for byte** from the
   backend's filter. Do not tidy them; the identical `404` is the property.
+- **`src/access/permissions.ts` mirrors the backend's `@Access` declarations by
+  hand.** There is no contract test across the two repositories, so the test's
+  copy of those declarations is the closest thing to one. If a role changes in
+  `tenant-members.controller.ts`, change it in both places or the UI offers a
+  button that only ever produces a refusal.
 - **`erasableSyntaxOnly` is on**, so no constructor parameter properties, no
   enums, no namespaces. `tsc` catches it; the runner does not.
 - **Never add an explanation to the wordless refusal.** `describeRefusal` for

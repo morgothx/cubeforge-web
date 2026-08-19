@@ -64,7 +64,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 8.1, 8.2, 8.3, 8.5_
   - _Boundary: Refusal vocabulary_
 
-- [ ] 2.2 (P) What a role may do here
+- [x] 2.2 (P) What a role may do here
   - A single answer to "may this role do this", expressed as a table rather
     than as comparisons scattered where they are needed
   - Consulted later by both the navigation and the screen, so a control cannot
@@ -363,3 +363,26 @@ inherits them rather than rediscovering them.
   distinction is the whole point: after a failed renewal the session really is
   over, which is a fact — the same words on a `404` would be a guess, and wrong
   most of the time, because by then a renewal has usually just succeeded.
+
+- **"A table rather than comparisons" is a compile-time claim, and no runtime
+  test could see it.** A probe replacing the table's body with
+  `role === 'admin' || permission === 'members:read'` produced **identical
+  answers for all four permissions** and failed nothing. The two are
+  behaviourally the same today; what comparisons lose is that the *fifth*
+  permission gets no decision and no complaint. The guarantee now lives in an
+  exported `RoleAdmission` type asserted with `@ts-expect-error`, and the same
+  probe fails `pnpm typecheck` with two errors. **A design property that only
+  matters for code not yet written cannot be tested behaviourally — encode it in
+  a type or admit it is unenforced.**
+- **The table was transcribed from `tenant-members.controller.ts`, and the test
+  restates it as the expected value.** Deliberate duplication: the test's copy
+  is the backend's declarations, and the source's copy is what the UI acts on.
+  They are two answers to the same question on purpose, so a drift between the
+  repositories fails here rather than surfacing as a button that only ever
+  produces a refusal. There is no contract test across the two repositories, so
+  this is the closest thing to one.
+- **An editor and a viewer are identical on this screen, asserted on purpose.**
+  They differ elsewhere on the platform and will differ on later data screens;
+  here the backend admits both to the read and neither to the writes. Asserted
+  so nobody "fixes" the apparent redundancy by inventing a distinction the
+  guards do not make.

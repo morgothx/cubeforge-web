@@ -337,6 +337,8 @@ export type Permission =
   | 'members:change-role'
   | 'members:revoke';
 
+export type RoleAdmission = Readonly<Record<Permission, readonly Role[]>>;
+
 export function may(role: Role, permission: Permission): boolean;
 ```
 
