@@ -1,4 +1,4 @@
-import { QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { render, type RenderResult } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router';
@@ -14,15 +14,19 @@ export * from '@testing-library/react';
  * one test into the next is the classic source of a suite that passes in order
  * and fails alone.
  *
+ * A caller that needs to look inside the cache — signing out has to leave none
+ * of the previous person's answers behind — passes its own client and keeps a
+ * reference to it.
+ *
  * `MemoryRouter` rather than the browser router the application mounts, because
  * a test needs to start at an address and there is no history to push. That is
  * the only difference from production, and it is the router's whole purpose.
  */
 export function renderAt(
   subject: ReactElement,
-  options: { at?: string } = {},
+  options: { at?: string; client?: QueryClient } = {},
 ): RenderResult {
-  const queryClient = createQueryClient();
+  const queryClient = options.client ?? createQueryClient();
 
   return render(
     <QueryClientProvider client={queryClient}>

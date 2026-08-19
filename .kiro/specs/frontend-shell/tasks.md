@@ -118,7 +118,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 9.2_
   - _Boundary: Endpoints_
 
-- [ ] 3.4 The session as the application sees it
+- [x] 3.4 The session as the application sees it
   - Three states: restoring a stored session, signed out, signed in. Restoring
     is its own state so that a session about to be recovered never flashes past
     a sign-in screen the person did not need
@@ -460,3 +460,33 @@ inherits them rather than rediscovering them.
   and no retry to reach, rather than three functions each remembering not to.
   The renewal uses it too, which leaves `http.ts` naming a route but not
   duplicating the request.
+
+- **The refresh token is read from storage every time, not remembered.** The
+  provider could not see a credential a test had just written, because
+  `session.ts` snapshotted storage when the module loaded. The snapshot was
+  never right: it is a second answer to a question storage already answers, and
+  it is the wrong one whenever this page was not the last to write — another tab
+  signing out clears the key while this one still believes in it. The access
+  token stays in memory; only the stored half changed.
+- **One guard in this task is reasoned rather than tested, and says so.**
+  StrictMode double-invokes the restore effect, and a second exchange of a
+  rotating refresh token would end the session the first one restored. In a
+  browser both invocations land before the exchange answers, so only a ref
+  stops the second. jsdom interleaves them the other way, where the state check
+  suffices unaided — so removing the ref fails nothing. Removing *both* guards
+  does fail. The test says which of the two it proves, and the code says the
+  ref is uncovered. Third time this feature has met the shape: assert what the
+  test can see, and write down what it cannot.
+- **Signing out cannot fail.** The request to the backend is attempted and its
+  refusal swallowed; the credential, the storage entry and the query cache go
+  regardless. Leaving somebody signed in because the network dropped is the one
+  outcome this must never produce, and the backend answers a sign-out for an
+  unknown token successfully anyway.
+- **The cache is cleared on the way in as well as on the way out.** A session
+  can end without anyone signing out — an expired credential that could not be
+  renewed ends it too, and leaves the previous person's answers behind. Only
+  clearing on sign-in makes 4.4 hold however the last session ended.
+- **A restore is not abandoned because the backend was unreachable.** 2.3
+  discards a credential the backend *will not exchange*; one it never answered
+  about has not been judged. Keeping it costs a sign-in form now and restores on
+  the next reload; discarding it costs a password for a dropped connection.

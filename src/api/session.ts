@@ -47,21 +47,28 @@ function readStoredRefreshToken(): string | null {
  */
 function createSessionState(): SessionState {
   let access: string | null = null;
-  let refresh: string | null = readStoredRefreshToken();
 
   return {
     accessToken: () => access,
-    refreshToken: () => refresh,
+
+    /**
+     * Read from storage every time rather than remembered.
+     *
+     * Storage is where this token lives, so a copy in memory could only ever be
+     * a second answer to the same question — and it would be the wrong one
+     * whenever the page was not the last to write: another tab signing out
+     * clears the key while this tab still believes in it, and a module loaded
+     * before the token was stored never sees it at all.
+     */
+    refreshToken: () => readStoredRefreshToken(),
 
     adopt(session) {
       access = session.accessToken;
-      refresh = session.refreshToken;
       localStorage.setItem(REFRESH_STORAGE_KEY, session.refreshToken);
     },
 
     end() {
       access = null;
-      refresh = null;
       localStorage.removeItem(REFRESH_STORAGE_KEY);
     },
   };

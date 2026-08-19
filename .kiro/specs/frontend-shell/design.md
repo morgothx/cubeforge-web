@@ -379,15 +379,32 @@ export type SessionStatus =
 
 export interface SessionContextValue {
   readonly status: SessionStatus;
-  signIn(credentials: { email: string; password: string }): Promise<void>;
-  signOut(): Promise<void>;
+  readonly signIn: (credentials: { email: string; password: string }) => Promise<void>;
+  /** Never rejects. */
+  readonly signOut: () => Promise<void>;
 }
 
 export function useSession(): SessionContextValue;
 ```
 
 On sign-out it ends the session *and* clears the Query cache, so the next person
-to sign in on this browser cannot be shown the previous one's data (4.4).
+to sign in on this browser cannot be shown the previous one's data (4.4) — and
+on sign-in too, because a session can end without anyone signing out and leave
+the cache behind.
+
+Signing out never rejects. The backend is told, its refusal is swallowed, and
+the credential, the stored token and the cache go regardless: leaving somebody
+signed in because the network dropped is the one outcome this must not produce.
+
+The initial state is decided while rendering rather than in an effect — a
+`signed-out` corrected a moment later is the flash 2.2 forbids — and the
+exchange runs once per page, guarded against StrictMode's double invocation,
+because a second exchange of a rotating refresh token would end the session the
+first restored. A stored credential the backend *never answered about* is kept
+rather than discarded: 2.3 is about one it declines to exchange.
+
+`useSession` lives in its own module: a file exporting a component may export
+nothing else without breaking fast refresh.
 
 ### `src/queries/*` — server state
 

@@ -5,23 +5,22 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 7/19 tasks.** Groups 1 and 2 are complete. `spec.json` phase
-  `tasks-generated`, all three approvals `true`.
-- Tarea activa: **3.3 complete and VERIFIED** — one function per route, and the
-  three that carry no credential. Next actionable is **3.4**, the session as the
-  application sees it.
-- Ciclo TDD: 3.3 RED → GREEN → VERIFIED by nine probes, including one that reads
-  the source rather than the behaviour, because "a URL is written down once"
-  cannot be seen in a response. The review found two real things: `listMembers`
-  was not asking for revoked memberships, which would have made requirement
-  7.1's active column read `true` on every row, and a failed renewal was ending
-  the session even when the backend simply could not be reached. Both closed
-  with a test first. 3.4 NOT_STARTED.
-- Último commit: `d164f96` feat(frontend-shell): make a request that survives
-  its credential expiring. **Uncommitted in the tree:** task 3.3.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (78 passing, 9 files) and
+- **`frontend-shell` in progress: 8/19 tasks.** Groups 1, 2 and 3 are complete.
+  `spec.json` phase `tasks-generated`, all three approvals `true`.
+- Tarea activa: **3.4 complete and VERIFIED** — the session as the application
+  sees it, and it is now mounted in `App.tsx`. Next actionable is **4.1**, who
+  the caller is.
+- Ciclo TDD: 3.4 RED → GREEN → VERIFIED by nine probes. Two findings worth
+  carrying: `session.ts` now reads the stored refresh token every time instead
+  of snapshotting it at module load, and one guard against StrictMode's double
+  restore is reasoned rather than tested — jsdom cannot produce the ordering it
+  protects against, and both the code and the test say so. 4.1 NOT_STARTED.
+- Último commit: `2503b70` (subject `Commit propuesto` — a paste slip, worth
+  fixing with a `rebase -i` alongside the scaffold commit `2e267be`, which has
+  the same subject). **Uncommitted in the tree:** task 3.4.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (90 passing, 10 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 3.4` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 4.1` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
