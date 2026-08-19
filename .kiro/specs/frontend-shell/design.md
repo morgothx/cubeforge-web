@@ -227,7 +227,8 @@ export type Refusal =
   | { readonly kind: 'session-ended' };
 
 export class ApiError extends Error {
-  constructor(readonly refusal: Refusal);
+  readonly refusal: Refusal;
+  constructor(refusal: Refusal);
 }
 
 /** The only function in the application that reads a status code. */

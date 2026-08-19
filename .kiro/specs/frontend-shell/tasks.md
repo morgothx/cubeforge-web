@@ -49,7 +49,7 @@ expired credential — and each of those is worth getting right on its own.
 
 Everything downstream depends on these two, and neither depends on the other.
 
-- [ ] 2.1 One vocabulary for every answer the backend gives
+- [x] 2.1 One vocabulary for every answer the backend gives
   - Turn a response into one closed set of outcomes: a rejection that carries a
     cause and sometimes the field at fault, a refusal that carries nothing, a
     throttled attempt, an unreachable service, and an ended session
@@ -341,3 +341,25 @@ inherits them rather than rediscovering them.
   `const { email, ...rest }` is how this codebase *omits* a field — the shape
   the backend itself uses — and `react-refresh/only-export-components` off for
   test helpers, which are never a hot-reload boundary.
+
+- **`erasableSyntaxOnly` forbids constructor parameter properties**, and the
+  design's own snippet used one. `class ApiError { constructor(readonly refusal:
+  Refusal) }` fails `tsc` under the Vite template's settings, because a
+  parameter property is syntax that must be compiled away rather than erased.
+  Same family as `cubeforge-api`'s ambient-const-enum problem: a build setting
+  that only the type-checker enforces, invisible to the runner. Write the field
+  out. Design corrected.
+- **A `500` is read as unreachable, not unavailable.** The design's table did
+  not cover server errors. Unavailability offers the person nothing to do, and
+  the service *was* reached and did fail — so trying again is the right offer.
+  Recorded here because it is a reading, not a fact: no requirement names a
+  server error.
+- **The `404`'s message is discarded on purpose.** It is the same sentence for
+  a caller who may not act, one with no credential, and a record that never
+  existed, so repeating it dresses an absence of information up as information.
+  A probe that passes it through fails a test.
+- **`session-ended` may say "sign in again"; `unavailable` may not.** The
+  forbidden-vocabulary scan applies to the wordless refusal alone. The
+  distinction is the whole point: after a failed renewal the session really is
+  over, which is a fact — the same words on a `404` would be a guess, and wrong
+  most of the time, because by then a renewal has usually just succeeded.
