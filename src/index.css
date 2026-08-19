@@ -1,0 +1,14 @@
+/*
+ * Nothing but a readable default. Styling is `frontend-shell`'s decision, and
+ * a scaffold that guessed at one would have to be undone first.
+ */
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+}

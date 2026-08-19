@@ -1,0 +1,17 @@
+# Lifecycle scripts are blocked by default (pnpm's supply-chain protection).
+# Every entry here is an explicit, reviewed exception — see CLAUDE.md.
+allowBuilds:
+  # Bundler used by Vite. Platform binaries ship as optional dependencies, so
+  # the postinstall link step is unnecessary; verified by running the dev
+  # server, the production build and the test suite with the script denied.
+  # `cubeforge-api` denies it for the same reason and by the same check.
+  esbuild: false
+minimumReleaseAgeExclude:
+  - '@vitest/expect@4.1.11'
+  - '@vitest/mocker@4.1.11'
+  - '@vitest/pretty-format@4.1.11'
+  - '@vitest/runner@4.1.11'
+  - '@vitest/snapshot@4.1.11'
+  - '@vitest/spy@4.1.11'
+  - '@vitest/utils@4.1.11'
+  - vitest@4.1.11
