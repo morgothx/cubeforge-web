@@ -187,7 +187,9 @@ describe('the route table', () => {
 
   it('serves the addresses that need one, behind the gate', async () => {
     for (const [address, expected] of [
-      ['/', /choosing a tenant/i],
+      // The root is a resolution rather than a destination: it lands on a
+      // tenant (5.2), which is what the members address renders.
+      ['/', /members/i],
       ['/t/t-acme/members', /members/i],
       ['/no-tenants', /belong to no tenants/i],
     ] as const) {

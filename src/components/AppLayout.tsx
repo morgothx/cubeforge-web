@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { useStanding } from '../queries/standing';
+import { useSelectedTenant } from '../routes/last-tenant';
+import { TenantSwitcher } from './TenantSwitcher';
 
 /**
  * The frame every signed-in page sits in.
@@ -9,11 +11,22 @@ import { useStanding } from '../queries/standing';
  * and no tenants, which is a different claim from "not yet" — and the one the
  * person would act on.
  *
- * The tenant switcher, the navigation and signing out arrive in tasks 5.2 and
- * 6.1; what is here is the identity, which everything else hangs beside.
+ * The navigation and signing out arrive in task 6.1; what is here is the
+ * identity and the tenant being acted in, which everything else hangs beside.
  */
 export function AppLayout({ children }: { children: ReactNode }) {
   const { data: standing } = useStanding();
+  const tenantId = useSelectedTenant();
+
+  /**
+   * The membership the address names, if it names one this caller holds. An
+   * address naming a tenant they cannot reach resolves to nothing here and is
+   * answered by the route (5.5, task 5.3) rather than by a switcher that
+   * quietly picks somebody else's tenant.
+   */
+  const selected = standing?.memberships.find(
+    (membership) => membership.tenantId === tenantId,
+  );
 
   return (
     <>
@@ -32,6 +45,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
              * the same set.
              */
             <p>Platform operator</p>
+          )}
+          {selected !== undefined && (
+            <TenantSwitcher
+              memberships={standing.memberships}
+              selected={selected}
+            />
           )}
         </header>
       )}

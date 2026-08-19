@@ -1,5 +1,7 @@
-import { Outlet, Route, Routes } from 'react-router';
+import { Navigate, Outlet, Route, Routes } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
+import { useStanding } from '../queries/standing';
+import { lastTenant } from './last-tenant';
 import { RequireSession, ReturnAfterSignIn } from './RequireSession';
 
 /**
@@ -32,8 +34,7 @@ export function AppRoutes() {
           </RequireSession>
         }
       >
-        {/* Where an arrival at the root is resolved into a tenant (5.2). */}
-        <Route path="/" element={<p>Choosing a tenant</p>} />
+        <Route path="/" element={<ChooseTenant />} />
         <Route path="/t/:tenantId/members" element={<p>Members</p>} />
         <Route path="/no-tenants" element={<p>You belong to no tenants</p>} />
       </Route>
@@ -46,4 +47,31 @@ export function AppRoutes() {
       <Route path="*" element={<p>Not available</p>} />
     </Routes>
   );
+}
+
+/**
+ * Where an arrival at the root is resolved into a tenant.
+ *
+ * The remembered tenant is consulted here and nowhere else, and only after the
+ * standing has confirmed the caller can still reach it — a membership can be
+ * revoked between sessions, and a convenience must never outrank the
+ * authority. With nothing usable remembered it takes the first tenant the
+ * backend named rather than presenting a chooser: the switcher is in the frame
+ * at all times, so landing somewhere is a better first move than asking a
+ * question the person can answer whenever they like.
+ */
+function ChooseTenant() {
+  const { data: standing } = useStanding();
+
+  if (standing === undefined) return null;
+
+  const reachable = standing.memberships;
+  if (reachable.length === 0) return <Navigate to="/no-tenants" replace />;
+
+  const remembered = lastTenant();
+  const selected =
+    reachable.find((membership) => membership.tenantId === remembered) ??
+    reachable[0];
+
+  return <Navigate to={`/t/${selected.tenantId}/members`} replace />;
 }

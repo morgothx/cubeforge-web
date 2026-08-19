@@ -5,20 +5,20 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 11/19 tasks.** Groups 1 to 4 are complete and
-  5.1 is done. `spec.json` phase `tasks-generated`, all three approvals `true`.
-- Tarea activa: **5.1 complete and VERIFIED** — the route table, the gate and
-  its mirror, mounted in `App.tsx`. The form at `/sign-in` and the members
-  screen are stand-ins until 6.1 and 6.2. Next actionable is **5.2**, choosing a
-  tenant and keeping the choice.
-- Ciclo TDD: 5.1 RED → GREEN → VERIFIED by nine probes, two of which only bit
-  after the tests were strengthened — "renders nothing while restoring" needed
-  the *address* asserted rather than the screen, and the guard on the remembered
-  address had no test at all. 5.2 NOT_STARTED.
-- Último commit: `08e362e` feat(frontend-shell): show the caller who the platform thinks they are. **Uncommitted in the tree:** task 5.1.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (119 passing, 13 files) and
+- **`frontend-shell` in progress: 12/19 tasks.** Groups 1 to 4 are complete, and
+  5.1 and 5.2 are done. `spec.json` phase `tasks-generated`, all three approvals
+  `true`.
+- Tarea activa: **5.2 complete and VERIFIED** — the tenant lives in the address,
+  `last-tenant.ts` answers only "where do I send an arrival at the root", and
+  `TenantSwitcher` is in the frame. Next actionable is **5.3**, the addresses
+  that lead nowhere.
+- Ciclo TDD: 5.2 RED → GREEN → VERIFIED by nine probes. Task 4.2's deliberately
+  empty 6.4 comparison was strengthened here, now that the frame has
+  destinations. 5.3 NOT_STARTED.
+- Último commit: `6cf5bac` feat(frontend-shell): declare every address once, and put a gate in front. **Uncommitted in the tree:** task 5.2.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (130 passing, 14 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 5.2` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 5.3` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

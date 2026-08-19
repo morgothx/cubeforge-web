@@ -167,7 +167,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 2.2, 2.5, 2.6_
   - _Boundary: Routing_
 
-- [ ] 5.2 Choosing a tenant, and keeping the choice
+- [x] 5.2 Choosing a tenant, and keeping the choice
   - One reachable tenant is selected without asking; several are offered as a
     choice, with the current one always visible
   - **The address is the only source of truth for the selection**, which is what
@@ -552,3 +552,31 @@ inherits them rather than rediscovering them.
 - **`useLocation().state` is `any`, and destructuring it spreads that.** Bound
   as `unknown` instead, so the check that turns a remembered string into a
   destination is the only thing that can widen it.
+
+- **Reading the selection and writing it down are one idea, so they live in one
+  hook.** `useSelectedTenant` takes the tenant from the address and remembers it
+  as a side effect of being there. What is written down is therefore always
+  somewhere the person actually was, and the memory is never a second opinion
+  about where they are now — a probe reading the selection from storage instead
+  of the address fails seven tests.
+- **The remembered tenant is checked against the standing before it is used.** A
+  membership can be revoked between sessions, so the convenience must never
+  outrank the authority. Two separate probes are needed here and both bite:
+  never consulting the memory, and trusting it without checking.
+- **An address naming no tenant leaves the memory alone rather than clearing
+  it.** Arriving at the sign-in form should not forget where somebody was
+  working. The probe that clears it fails two tests.
+- **With nothing usable remembered, the root lands on the first tenant rather
+  than presenting a chooser.** The switcher is in the frame at all times, so
+  landing somewhere is a better first move than asking a question the person can
+  answer whenever they like. This is a reading, not a requirement: 5.2 asks that
+  they be able to choose, not that they be made to.
+- **Task 4.2's empty comparison is empty no longer.** The 6.4 test now renders at
+  a tenant's address, where the frame has destinations, and asserts the set is
+  non-empty before comparing operator against ordinary. As predicted when it was
+  written — recorded because that is the moment such a test either gets
+  strengthened or quietly stops meaning anything.
+- **Half of requirement 5.3 lands here and half does not.** Switching changes the
+  tenant *and the role shown for it*, which is the input every later gate reads.
+  The data on the screen and the navigation the role permits arrive with 6.2 and
+  6.1; what is proven here is the switch itself.

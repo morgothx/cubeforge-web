@@ -80,13 +80,19 @@ describe('the application frame', () => {
   });
 
   it('offers an operator no destination it does not offer everybody', async () => {
-    const ordinary = renderSignedIn(<AppLayout>a page</AppLayout>);
+    // Rendered at a tenant's address on purpose: that is where the frame has
+    // destinations at all, and a comparison of two empty sets would pass for
+    // any implementation whatsoever.
+    const ordinary = renderSignedIn(<AppLayout>a page</AppLayout>, {
+      at: '/t/t-acme/members',
+    });
     await screen.findByText('caller@example.com');
     const offered = destinations();
+    expect(offered).not.toEqual([]);
     ordinary.unmount();
 
     standingOf({ isOperator: true });
-    renderSignedIn(<AppLayout>a page</AppLayout>);
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
     await screen.findByText(/platform operator/i);
 
     // 6.4, and the reason it is a requirement at all: this repository has no

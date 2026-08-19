@@ -443,7 +443,12 @@ the standing (4.5).
 ```
 
 **The selected tenant is a path segment, and the URL is the only source of
-truth for it.** Requirement 5.4 then costs nothing: reloading `/t/acme/members`
+truth for it.** Reading it and writing it down are one hook, `useSelectedTenant`,
+so what is remembered is always somewhere the person actually was; an address
+naming no tenant leaves the memory alone rather than clearing it. An arrival at
+the root uses the remembered value only after the standing confirms the caller
+can still reach it, and otherwise takes the first tenant named rather than
+presenting a chooser — the switcher is in the frame at all times. Requirement 5.4 then costs nothing: reloading `/t/acme/members`
 restores the selection because it never left. A separate remembered value exists
 for one purpose — deciding where to send someone who arrived at `/` — and is
 never consulted while a tenant is in the path. Two mechanisms, one seam, stated
