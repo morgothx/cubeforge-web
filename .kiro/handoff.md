@@ -5,23 +5,20 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 9/19 tasks.** Groups 1, 2 and 3 are complete.
+- **`frontend-shell` in progress: 10/19 tasks.** Groups 1 to 4 are complete.
   `spec.json` phase `tasks-generated`, all three approvals `true`.
-- Tarea activa: **4.1 complete and VERIFIED** — the caller's standing, read once
-  per session and never written down. Next actionable is **4.2**, showing the
-  caller their own identity.
-- Ciclo TDD: 4.1 RED → GREEN → VERIFIED by seven probes. One probe found that
-  the harness answered `/api/me` without a credential; every authorized route
-  now refuses an uncredentialed request the way the guard does, which is what
-  makes "do not read the standing during the restore" a testable claim. 4.2
-  NOT_STARTED.
-- Último commit: `f02c0f3` feat(frontend-shell): three states, and the two
-  transitions nothing else makes. **Uncommitted in the tree:** task 4.1, plus
-  the amended commit rule in `CLAUDE.md` — Camilo is folding that into the next
-  task's commit on purpose, so its message says nothing about it.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (101 passing, 11 files) and
+- Tarea activa: **4.2 complete and VERIFIED** — the caller's own address and the
+  operator fact, in `AppLayout`. Next actionable is **5.1**, the route table.
+- Ciclo TDD: 4.2 RED → GREEN → VERIFIED by five probes. `renderSignedIn` in
+  `test/render.tsx` is now the one way a test arrives with a session, and
+  `standing.test.tsx` was moved onto it. 5.1 NOT_STARTED.
+- Último commit: `c94c048` feat(frontend-shell): read who the caller is, once
+  and from the backend — which also carried the amended commit rule in
+  `CLAUDE.md`, deliberately unmentioned in its message. **Uncommitted in the
+  tree:** task 4.2.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (108 passing, 12 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 4.2` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 5.1` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

@@ -1,9 +1,9 @@
 import { HttpResponse, http } from 'msw';
 import { StrictMode } from 'react';
 import { backend, refusals } from '../../test/handlers';
-import { renderAt, screen, waitFor } from '../../test/render';
+import { renderAt, renderSignedIn, screen, waitFor } from '../../test/render';
 import { countRequests, server } from '../../test/server';
-import { REFRESH_STORAGE_KEY, session } from '../api/session';
+import { session } from '../api/session';
 import { SessionProvider } from '../session/SessionProvider';
 import { createQueryClient } from './client';
 import { keys } from './keys';
@@ -50,19 +50,14 @@ function Standing({ label = 'standing' }: { label?: string }) {
   );
 }
 
-function mount(subject = <Standing />, client = createQueryClient()) {
-  const result = renderAt(
+/** Rendered with nobody signed in, which is a case of its own here. */
+function mountSignedOut(subject = <Standing />) {
+  return renderAt(
     <StrictMode>
       <SessionProvider>{subject}</SessionProvider>
     </StrictMode>,
-    { client },
+    { client: createQueryClient() },
   );
-  return { client, ...result };
-}
-
-/** Signed in before the first render, the way a restored page arrives. */
-function withStoredSession() {
-  localStorage.setItem(REFRESH_STORAGE_KEY, 'refresh-1');
 }
 
 beforeEach(() => {
@@ -72,9 +67,7 @@ beforeEach(() => {
 
 describe("the caller's standing", () => {
   it('reports the answer the backend gave, tenant for tenant', async () => {
-    withStoredSession();
-
-    mount();
+    renderSignedIn(<Standing />);
 
     await screen.findByText('standing: caller@example.com');
     expect(
@@ -83,7 +76,6 @@ describe("the caller's standing", () => {
   });
 
   it('reports no tenants when the backend named none', async () => {
-    withStoredSession();
     server.use(
       http.get('/api/me', () =>
         HttpResponse.json({
@@ -94,7 +86,7 @@ describe("the caller's standing", () => {
       ),
     );
 
-    mount();
+    renderSignedIn(<Standing />);
 
     await screen.findByText('standing: caller@example.com');
     // An operator with no membership reaches no tenant, and the backend has
@@ -105,9 +97,7 @@ describe("the caller's standing", () => {
   });
 
   it('asks once however many parts of the screen want it', async () => {
-    withStoredSession();
-
-    mount(
+    renderSignedIn(
       <>
         <Standing label="header" />
         <Standing label="navigation" />
@@ -120,13 +110,12 @@ describe("the caller's standing", () => {
   });
 
   it('asks once per session, not once per mount', async () => {
-    withStoredSession();
     const client = createQueryClient();
 
-    const first = mount(<Standing />, client);
+    const first = renderSignedIn(<Standing />, { client });
     await screen.findByText('standing: caller@example.com');
     first.unmount();
-    mount(<Standing />, client);
+    renderSignedIn(<Standing />, { client });
 
     await screen.findByText('standing: caller@example.com');
     // Asserted as "nothing is in flight" rather than "the count is still one".
@@ -138,8 +127,7 @@ describe("the caller's standing", () => {
   });
 
   it('holds the answer as current until something says otherwise', async () => {
-    withStoredSession();
-    const { client } = mount();
+    const { client } = renderSignedIn(<Standing />);
     await screen.findByText('standing: caller@example.com');
 
     const cached = client.getQueryCache().find({ queryKey: keys.standing });
@@ -156,8 +144,7 @@ describe("the caller's standing", () => {
   });
 
   it('asks again when something says the answer is stale', async () => {
-    withStoredSession();
-    const { client } = mount();
+    const { client } = renderSignedIn(<Standing />);
     await screen.findByText('standing: caller@example.com');
 
     await client.invalidateQueries({ queryKey: keys.standing });
@@ -171,9 +158,7 @@ describe("the caller's standing", () => {
   });
 
   it('waits for the restore rather than racing it', async () => {
-    withStoredSession();
-
-    mount();
+    renderSignedIn(<Standing />);
 
     await screen.findByText('standing: caller@example.com');
     // Asking during the restore would go out with no access token at all, be
@@ -186,7 +171,7 @@ describe("the caller's standing", () => {
   });
 
   it('does not ask while nobody is signed in', async () => {
-    mount();
+    mountSignedOut();
 
     await screen.findByText('standing: not asked');
     // Asking without a credential produces the same wordless 404 as a refusal,
@@ -195,9 +180,7 @@ describe("the caller's standing", () => {
   });
 
   it('keeps nothing about the caller where a script can read it', async () => {
-    withStoredSession();
-
-    mount();
+    renderSignedIn(<Standing />);
 
     await screen.findByText('standing: caller@example.com');
     // The whole of storage, not just the keys this feature knows about: the
@@ -210,10 +193,9 @@ describe("the caller's standing", () => {
   });
 
   it('reports a refusal in the vocabulary, never a status', async () => {
-    withStoredSession();
     server.use(refusals.wordless('get', '/api/me'));
 
-    mount();
+    renderSignedIn(<Standing />);
 
     // The renewal succeeds and the second ask is refused the same way, so what
     // reaches the screen is the wordless refusal — not a status, and not the

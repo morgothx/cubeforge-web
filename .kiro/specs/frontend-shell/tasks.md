@@ -146,7 +146,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 4.1, 9.3_
   - _Boundary: Standing query_
 
-- [ ] 4.2 Show the caller their own identity
+- [x] 4.2 Show the caller their own identity
   - The person's own address, and whether the platform records them as an
     operator
   - Done when the address from the standing is on screen, and the operator fact
@@ -511,3 +511,24 @@ inherits them rather than rediscovering them.
   saying nobody asked. A screen reading `isPending` alone would show a spinner
   to somebody who is signed out, which is why every consumer of `useStanding`
   belongs behind a signed-in route.
+
+- **"Offers no additional destination" is asserted by comparing two sets, not by
+  looking for an absence.** The test collects every link and button in the frame
+  for an ordinary caller, then for an operator, and requires the same set. Today
+  both are empty, so it can only catch a badge that became clickable — but it is
+  written to keep holding once 5.2 and 6.1 fill the frame, which is when it
+  starts being worth something. Recorded so nobody reads the empty comparison as
+  a test that proves nothing.
+- **The frame says nothing until it knows.** Rendering the slots while the
+  standing is still being read shows a person with no address and no tenants,
+  which is a different claim from "not yet" — and the one somebody would act on.
+  A probe that renders the header early fails a test.
+- **`Partial<typeof backend.caller>` narrows to the fixture's literals.** The
+  fixture is `satisfies CallerStanding`, so `isOperator` has type `false` and an
+  override of `true` does not compile. `Partial<CallerStanding>` is the type
+  wanted. The runner reported eight passing tests while `tsc` reported three
+  errors — the same trap as task 1.1, from the opposite direction.
+- **`renderSignedIn` is the one way a test arrives with a session.** It stores a
+  refresh token before the first render and lets the provider exchange it, so
+  the subject meets the real restore rather than a faked state — which is what
+  makes a read fired too early show up as a request instead of as nothing.
