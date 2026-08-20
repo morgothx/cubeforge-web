@@ -6,7 +6,16 @@
  * and the absence of a status on a membership.
  */
 
-export type Role = 'admin' | 'editor' | 'viewer';
+/**
+ * Every role, in one place and in an order a listing can rely on.
+ *
+ * A tuple rather than a bare union because the union alone cannot be
+ * enumerated: a control offering the roles would otherwise restate them, and
+ * the restatement is what goes out of date.
+ */
+export const ROLES = ['admin', 'editor', 'viewer'] as const;
+
+export type Role = (typeof ROLES)[number];
 
 /** What signing in and renewing both answer with. */
 export interface Session {

@@ -5,7 +5,7 @@ import { backend, withoutAddresses } from '../../test/handlers';
 import { renderSignedIn, screen, waitFor, within } from '../../test/render';
 import { countRequests, server } from '../../test/server';
 import { session } from '../api/session';
-import type { Member } from '../api/types';
+import type { CallerStanding, Member, Role } from '../api/types';
 
 /**
  * The listing, and the one thing about it that is easy to get subtly wrong.
@@ -16,6 +16,25 @@ import type { Member } from '../api/types';
  * arrive"; no column at all says "not for you". Those are different sentences,
  * and only the second is true.
  */
+
+/**
+ * The caller's role in Acme.
+ *
+ * A viewer throughout this file, deliberately: what the listing renders about
+ * addresses is decided by **what the backend sent**, not by what role the
+ * caller holds, and the two are kept apart here so a change to one cannot be
+ * mistaken for the other. The actions a role may take have their own file.
+ */
+function callerIsA(role: Role) {
+  const standing: CallerStanding = {
+    ...backend.caller,
+    memberships: [
+      { tenantId: 't-acme', tenantName: 'Acme', role },
+      { tenantId: 't-globex', tenantName: 'Globex', role: 'viewer' },
+    ],
+  };
+  server.use(http.get('/api/me', () => HttpResponse.json(standing)));
+}
 
 function membersAre(members: readonly Member[]) {
   server.use(
@@ -46,6 +65,7 @@ function columns(): string[] {
 beforeEach(() => {
   localStorage.clear();
   session.end();
+  callerIsA('viewer');
 });
 
 describe('the members of the selected tenant', () => {

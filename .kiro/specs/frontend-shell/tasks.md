@@ -228,7 +228,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 7.1, 7.2, 8.4_
   - _Boundary: Members screen_
 
-- [ ] 6.3 What an administrator may change
+- [x] 6.3 What an administrator may change
   - Invite a person with a role, change a member's role, revoke a membership —
     each offered only to a role the permission table admits
   - Every change refreshes the listing without a reload; the two that can change
@@ -654,3 +654,27 @@ inherits them rather than rediscovering them.
   and the failure mode is a refused request that sends the request layer off to
   renew a perfectly good credential. Same lesson as 5.1's remembered-address
   guard, applied before a probe had to find it.
+
+- **Clearing the invite field on submit masked the double-submit guard.** With
+  the field empty, the second submission returned early on "nothing typed"
+  rather than on "already in flight", so the probe removing the guard failed
+  nothing. Clearing on *success* fixes both the test and the behaviour: a
+  rejected invitation should not cost the person what they typed. Second time
+  this feature has met a probe blocked by an unrelated line — the first was 6.1.
+- **Every change ends in a re-read, never in a locally patched cache.** The
+  backend decides more than the caller asked for: an invitation may attach to a
+  person who already exists, a revocation changes a membership's status rather
+  than removing a row. The assertion is therefore a request count, because a
+  screen that spliced the answer into its own cache renders the same thing and
+  is wrong about everything the backend decided.
+- **The two changes that can alter the caller's own standing re-read it too.**
+  Asserted through the demotion: an administrator who makes themselves a viewer
+  watches the frame say "as viewer" and the three controls disappear, with the
+  credential unchanged. That is the whole reason standing is a query rather than
+  something remembered at sign-in.
+- **Absent, not disabled.** A disabled control still says the action exists and
+  that you are the problem, and it is not what makes the action safe — the
+  backend refuses it either way, and a role can change between drawing a control
+  and pressing it. The probes that admit everybody fail three and seven tests.
+- **`ROLES` is a tuple in `types.ts` now.** A control offering the roles would
+  otherwise restate the union, and the restatement is what goes out of date.

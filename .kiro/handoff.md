@@ -5,19 +5,19 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 15/19 tasks.** Groups 1 to 5 are complete, and
-  6.1 and 6.2 are done. No stand-ins remain in the route table. `spec.json`
-  phase `tasks-generated`, all three approvals `true`.
-- Tarea activa: **6.2 complete and VERIFIED** — the members listing, with the
-  address column present or absent and never blank. Next actionable is **6.3**,
-  what an administrator may change.
-- Ciclo TDD: 6.2 RED → GREEN → VERIFIED by seven probes. Note for 6.3: the
-  invalidation keys are already in `src/queries/keys.ts`, and `useMembers` is
-  keyed per tenant. 6.3 NOT_STARTED.
-- Último commit: `ae100ac` feat(frontend-shell): a form whose discipline is what it declines to say. **Uncommitted in the tree:** task 6.2.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (157 passing, 17 files) and
+- **`frontend-shell` in progress: 16/19 tasks.** Groups 1 to 5 are complete, and
+  6.1, 6.2 and 6.3 are done. `spec.json` phase `tasks-generated`, all three
+  approvals `true`.
+- Tarea activa: **6.3 complete and VERIFIED** — the three changes, each gated by
+  `may` and each ending in a re-read. Next actionable is **6.4**, the
+  integration task that gives every outcome one voice.
+- Ciclo TDD: 6.3 RED → GREEN → VERIFIED by six probes. Note for 6.4: no refusal
+  is rendered anywhere yet — the mutations surface `ApiError` and nothing shows
+  it, which is exactly what 6.4 exists to fix. 6.4 NOT_STARTED.
+- Último commit: `c440bc5` feat(frontend-shell): list a tenant's members, with no blank where an address is withheld. **Uncommitted in the tree:** task 6.3.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (165 passing, 18 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 6.3` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 6.4` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 
