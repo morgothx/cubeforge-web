@@ -5,19 +5,21 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 17/19 tasks.** Groups 1 to 6 are complete.
-  Only group 7, validation, remains. `spec.json` phase `tasks-generated`, all
-  three approvals `true`.
-- Tarea activa: **6.4 complete and VERIFIED** — every outcome in one voice, with
-  the single-voice claim asserted by a source scan rather than by a rendering.
-  Next actionable is **7.1**, the whole journey.
-- Ciclo TDD: 6.4 RED → GREEN → VERIFIED by nine probes. The scans now strip
-  comments before asking, which also removed a false positive the URL scan from
-  task 3.3 had been producing. 7.1 NOT_STARTED.
-- Último commit: `60cdf10` feat(frontend-shell): let an administrator change things, and everybody else see them. **Uncommitted in the tree:** task 6.4.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (174 passing, 19 files) and
+- **`frontend-shell` in progress: 18/19 tasks.** Only **7.2** remains — asserting
+  the served addresses against the list this feature committed to, so a route
+  added later fails by name. `spec.json` phase `tasks-generated`, all three
+  approvals `true`.
+- Tarea activa: **7.1 complete and VERIFIED** — the end-to-end journey in
+  `test/journey.test.tsx`, over a harness that changes when it is asked to.
+  Next actionable is **7.2**.
+- Ciclo TDD: 7.1 wrote no production code; two of its three tests passed
+  immediately, which is what a validation task looks like when the parts were
+  right. Five probes, four against the application and one against the harness
+  to prove the credential assertion is not inert. 7.2 NOT_STARTED.
+- Último commit: `8aaed3f` feat(frontend-shell): say what happened in one voice, and prove it by scanning. **Uncommitted in the tree:** task 7.1.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (177 passing, 20 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 7.1` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 7.2` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

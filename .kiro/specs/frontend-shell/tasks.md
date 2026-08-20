@@ -261,7 +261,7 @@ Everything downstream depends on these two, and neither depends on the other.
 
 ## 7. Validation
 
-- [ ] 7.1 The whole journey, and the properties only it exposes
+- [x] 7.1 The whole journey, and the properties only it exposes
   - Sign in, read the standing, reach a tenant, list its members, change a role,
     see the change, sign out
   - A role changed between two asks shows in the second **with the credential
@@ -705,3 +705,24 @@ inherits them rather than rediscovering them.
   not be reached is worth asking again; a refusal is not, and offering to repeat
   it would promise something that cannot happen. Two probes — offering the retry
   for every outcome, and for none — fail one test each.
+
+- **Two of the three journey tests passed on the first run, and that is the
+  point.** This task writes no production code; it asks whether the parts, each
+  correct alone, are correct together. What it caught was in the *test* — an
+  assertion read before the root had resolved into a tenant — which is the third
+  time this feature has met "asserted before the thing had rendered".
+- **The harness had to become a backend that changes.** A fixed fixture cannot
+  express the property at all: the whole claim is that the *same* question,
+  asked twice with the same credential, answers differently once something has
+  changed underneath. The journey's handlers hold state, and the `PATCH` that
+  demotes the caller is what makes the next `GET /me` answer `viewer`.
+- **"With the credential unchanged" is an assertion that could have been
+  inert.** No mutation of application code makes the access token change, so a
+  probe was run against the *harness* instead: making the standing re-read
+  expire once sends the request layer to renew, the token becomes
+  `access-renewed`, and the assertion fails. It is a live regression guard, not
+  a decoration — proved rather than assumed.
+- **Every guard the task names does fail when removed.** Caching the standing
+  across the change, treating the backend's refusal as impossible, skipping the
+  listing re-read, and signing out without discarding the credential each turn
+  exactly one journey test red.
