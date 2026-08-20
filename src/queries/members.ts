@@ -33,9 +33,9 @@ export function useMembers(
     /**
      * No tenant, no question. The route table never renders this without one,
      * but "never" is a property of today's routes rather than of this hook —
-     * and the failure mode is a request whose tenant segment is empty, which
-     * the backend answers with the wordless refusal — and the request layer
-     * then tries to rescue it by renewing a perfectly good credential.
+     * and the failure mode is a request to `/tenants//members`, answered with
+     * the wordless refusal — which the request layer then tries to rescue by
+     * renewing a perfectly good credential.
      */
     enabled: tenantId !== '',
   });

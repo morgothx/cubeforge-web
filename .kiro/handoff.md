@@ -5,19 +5,19 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 16/19 tasks.** Groups 1 to 5 are complete, and
-  6.1, 6.2 and 6.3 are done. `spec.json` phase `tasks-generated`, all three
-  approvals `true`.
-- Tarea activa: **6.3 complete and VERIFIED** — the three changes, each gated by
-  `may` and each ending in a re-read. Next actionable is **6.4**, the
-  integration task that gives every outcome one voice.
-- Ciclo TDD: 6.3 RED → GREEN → VERIFIED by six probes. Note for 6.4: no refusal
-  is rendered anywhere yet — the mutations surface `ApiError` and nothing shows
-  it, which is exactly what 6.4 exists to fix. 6.4 NOT_STARTED.
-- Último commit: `c440bc5` feat(frontend-shell): list a tenant's members, with no blank where an address is withheld. **Uncommitted in the tree:** task 6.3.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (165 passing, 18 files) and
+- **`frontend-shell` in progress: 17/19 tasks.** Groups 1 to 6 are complete.
+  Only group 7, validation, remains. `spec.json` phase `tasks-generated`, all
+  three approvals `true`.
+- Tarea activa: **6.4 complete and VERIFIED** — every outcome in one voice, with
+  the single-voice claim asserted by a source scan rather than by a rendering.
+  Next actionable is **7.1**, the whole journey.
+- Ciclo TDD: 6.4 RED → GREEN → VERIFIED by nine probes. The scans now strip
+  comments before asking, which also removed a false positive the URL scan from
+  task 3.3 had been producing. 7.1 NOT_STARTED.
+- Último commit: `60cdf10` feat(frontend-shell): let an administrator change things, and everybody else see them. **Uncommitted in the tree:** task 6.4.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (174 passing, 19 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 6.4` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 7.1` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

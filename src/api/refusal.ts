@@ -118,3 +118,16 @@ export function describeRefusal(refusal: Refusal): string {
       return 'Your session has ended. Please sign in again.';
   }
 }
+
+/**
+ * The field the backend blamed, if it blamed one.
+ *
+ * Lives here with the vocabulary rather than with the component that renders
+ * it: which input is at fault is a fact about the refusal, and a form only
+ * needs it to put the notice beside that input rather than at the top, where
+ * "that person is already a member" is a sentence about nothing in particular
+ * (7.6).
+ */
+export function fieldBlamed(refusal: Refusal | undefined): string | null {
+  return refusal?.kind === 'rejected' ? (refusal.field ?? null) : null;
+}

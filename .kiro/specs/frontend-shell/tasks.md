@@ -242,7 +242,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 4.5, 6.1, 7.3, 7.4, 7.5, 7.8_
   - _Boundary: Members screen, member changes_
 
-- [ ] 6.4 Say what happened, in one voice — **integration task**
+- [x] 6.4 Say what happened, in one voice — **integration task**
   - Deliberately crosses every screen rather than living inside one: the whole
     point is that there is a single voice, and a per-screen version of this
     would be four voices agreeing by coincidence
@@ -678,3 +678,30 @@ inherits them rather than rediscovering them.
   and pressing it. The probes that admit everybody fail three and seven tests.
 - **`ROLES` is a tuple in `types.ts` now.** A control offering the roles would
   otherwise restate the union, and the restatement is what goes out of date.
+
+- **"One voice" is a scan, because no rendering can see it.** Four screens each
+  writing their own "that did not work" render exactly what one shared component
+  renders — until somebody edits one of them. So the test reads the source:
+  only `refusal.ts` and `RefusalNotice.tsx` may name `describeRefusal`, and
+  nothing above `src/api` may read a status. Both probes bite.
+- **The scans strip comments now, and the first version of this one proved why.**
+  It flagged seven files, every one of them for prose — a doc block saying
+  "never a status", a comment mentioning `400`, and `status.state`, which is the
+  session's status and nobody's business here. Task 6.2 had already met the same
+  wart in the URL scan; both scans now remove comments before asking, and the
+  URL scan's regression is gone with it.
+- **The sign-in screen was the second voice, and the scan found it.** It called
+  `describeRefusal` for the two outcomes it shares with everywhere else. It now
+  renders `RefusalNotice` for those and keeps only its own sentence — the one
+  thing it says that no refusal says. The design already sanctioned a narrower
+  vocabulary there; what it did not sanction was a second copy of the shared
+  one.
+- **The reason is attached to the input, not merely near it.** `aria-describedby`
+  is what makes "against the field at fault" true for somebody who cannot see
+  where a paragraph sits, and it is what the test asserts —
+  `toHaveAccessibleDescription`. Removing the attribute fails it while the words
+  are still on screen.
+- **The retry button is the distinction, not a decoration.** A service that could
+  not be reached is worth asking again; a refusal is not, and offering to repeat
+  it would promise something that cannot happen. Two probes — offering the retry
+  for every outcome, and for none — fail one test each.

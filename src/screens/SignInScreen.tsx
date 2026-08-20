@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { ApiError, describeRefusal, type Refusal } from '../api/refusal';
+import { ApiError, type Refusal } from '../api/refusal';
+import { RefusalNotice } from '../components/RefusalNotice';
 import { useSession } from '../session/useSession';
 
 /**
@@ -96,7 +97,7 @@ export function SignInScreen() {
         />
 
         {objection !== null && <p>{objection}</p>}
-        {refusal !== null && <p role="alert">{saySo(refusal)}</p>}
+        {refusal !== null && <SignInRefusal refusal={refusal} />}
 
         <button type="submit" disabled={attempting}>
           Sign in
@@ -110,17 +111,21 @@ export function SignInScreen() {
 /**
  * What the person is told, which is narrower than the refusal vocabulary.
  *
- * Only two outcomes have anything specific worth saying. Being throttled is
- * actionable — wait — and it is not a wrong password, so conflating them would
- * have somebody retyping a password that was right. A service that could not be
- * reached is not a rejection at all, and calling it one would be a lie.
+ * Two outcomes have something specific worth saying and are said in the same
+ * voice as everywhere else in the application. Being throttled is actionable —
+ * wait — and it is not a wrong password, so conflating them would have somebody
+ * retyping a password that was right. A service that could not be reached is
+ * not a rejection at all, and calling it one would be a lie.
  *
- * Everything else is the same sentence, because the backend gave the same
- * answer and this screen has nothing more to go on.
+ * Everything else is this screen's own sentence, because the backend gave the
+ * same answer to every failure and has told it nothing more. This is the one
+ * place in the application that says something a refusal does not say — and it
+ * still does not reach for `describeRefusal` to do it, so the scan requiring a
+ * single voice holds.
  */
-function saySo(refusal: Refusal): string {
+function SignInRefusal({ refusal }: { refusal: Refusal }) {
   if (refusal.kind === 'throttled' || refusal.kind === 'unreachable') {
-    return describeRefusal(refusal);
+    return <RefusalNotice refusal={refusal} />;
   }
-  return 'That email address and password did not match.';
+  return <p role="alert">That email address and password did not match.</p>;
 }

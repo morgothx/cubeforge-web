@@ -230,10 +230,25 @@ describe('a URL is written down once', () => {
     eager: true,
   });
 
+  /**
+   * The source with its comments removed.
+   *
+   * Prose about a route reads exactly like a route: a doc block in
+   * `queries/members.ts` describing the members path was once reported here as
+   * a second file naming one. What this test is about is what the code does.
+   */
+  function code(source: string): string {
+    return source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+  }
+
   it('is named in this module alone, and in the renewal', () => {
     const naming = Object.entries(sources)
       .filter(([path]) => !/\.test\.tsx?$/.test(path))
-      .filter(([, source]) => /['"`]\/(api\/)?(auth|me|tenants)\b/.test(source))
+      .filter(([, source]) =>
+        /['"`]\/(api\/)?(auth|me|tenants)\b/.test(code(source)),
+      )
       .map(([path]) => path)
       .sort();
 

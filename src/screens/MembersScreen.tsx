@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router';
 import { may } from '../access/permissions';
+import { fieldBlamed } from '../api/refusal';
+import { RefusalNotice } from '../components/RefusalNotice';
 import { Waiting } from '../components/Waiting';
 import {
   useChangeMemberRole,
@@ -124,6 +126,29 @@ function MemberRow({
   const revoke = useRevokeMembership(tenantId);
   const who = member.email ?? member.personId;
 
+  /**
+   * Whichever of the two was refused, with the way to ask again.
+   *
+   * Both actions on a row report through one notice: two notices in one cell
+   * would be two places to look for the same kind of news.
+   */
+  const refused =
+    changeRole.error !== null
+      ? {
+          error: changeRole.error,
+          again: () => {
+            changeRole.reset();
+          },
+        }
+      : revoke.error !== null
+        ? {
+            error: revoke.error,
+            again: () => {
+              revoke.mutate({ membershipId: member.membershipId });
+            },
+          }
+        : undefined;
+
   return (
     <tr>
       {showAddress && <td>{member.email}</td>}
@@ -163,6 +188,14 @@ function MemberRow({
             </button>
           )}
           {(changeRole.isPending || revoke.isPending) && <span>Changing…</span>}
+          {refused !== undefined && (
+            <RefusalNotice
+              refusal={refused.error.refusal}
+              onRetry={() => {
+                refused.again();
+              }}
+            />
+          )}
         </td>
       )}
     </tr>
@@ -173,6 +206,11 @@ function InviteForm({ tenantId }: { tenantId: string }) {
   const invite = useInviteMember(tenantId);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('viewer');
+
+  const refusal = invite.error?.refusal;
+  // Beside the input the backend blamed, rather than at the top where "that
+  // person is already a member" is a sentence about nothing in particular.
+  const blamed = fieldBlamed(refusal);
 
   function send(event: FormEvent) {
     event.preventDefault();
@@ -203,10 +241,16 @@ function InviteForm({ tenantId }: { tenantId: string }) {
         id="invite-email"
         type="email"
         value={email}
+        aria-describedby={
+          blamed === 'email' ? 'invite-email-refused' : undefined
+        }
         onChange={(event) => {
           setEmail(event.target.value);
         }}
       />
+      {blamed === 'email' && refusal !== undefined && (
+        <RefusalNotice refusal={refusal} id="invite-email-refused" />
+      )}
 
       <label htmlFor="invite-role">Role for the new member</label>
       <select
@@ -227,6 +271,14 @@ function InviteForm({ tenantId }: { tenantId: string }) {
         Invite
       </button>
       {invite.isPending && <p>Inviting…</p>}
+      {refusal !== undefined && blamed === null && (
+        <RefusalNotice
+          refusal={refusal}
+          onRetry={() => {
+            invite.mutate({ email, role });
+          }}
+        />
+      )}
     </form>
   );
 }

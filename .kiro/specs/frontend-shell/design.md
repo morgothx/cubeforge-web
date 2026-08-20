@@ -499,8 +499,10 @@ guarantee that is to have nowhere to reuse it from.
 
 Two rules the review should treat as errors if broken:
 
-1. **Nothing outside `refusal.ts` reads `status`.** A component that branches on
-   `404` has re-created the guess this whole section exists to prevent.
+1. **Nothing outside `src/api` reads `status`.** A component that branches on
+   `404` has re-created the guess this whole section exists to prevent. Asserted
+   by a source scan, with comments stripped first — prose about a status reads
+   exactly like one.
 2. **`describeRefusal` never grows a case that explains `unavailable`.** The
    plausible-sounding one — "your session expired" — is the wrong guess most of
    the time, and by the time it is shown the session has already been proven
@@ -618,7 +620,7 @@ observing that nothing went wrong.
 | `src/components/AppLayout.tsx` | Caller identity, operator badge, tenant switcher, navigation, sign out |
 | `src/components/TenantSwitcher.tsx` | Choosing among reachable tenants |
 | `src/components/Waiting.tsx` | "We are waiting", used wherever 8.4 applies |
-| `src/components/RefusalNotice.tsx` | Renders `describeRefusal`, and nothing else does |
+| `src/components/RefusalNotice.tsx` | Renders `describeRefusal`, and nothing else does — asserted by a scan. The sign-in screen keeps its own narrower sentence but reaches for this component for the outcomes it shares |
 | `test/handlers.ts` | MSW handlers, one per endpoint, from the real contracts |
 | `test/server.ts` | The MSW server for Node |
 | `test/render.tsx` | Renders a subject inside providers and a router at a given address |
