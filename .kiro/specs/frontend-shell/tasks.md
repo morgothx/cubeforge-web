@@ -744,3 +744,29 @@ inherits them rather than rediscovering them.
   not only requirement 6.2's answer for an unknown address, it is what every
   other test relies on to distinguish "this address leads nowhere" from "this
   address renders nothing at all".
+
+### Found by feature validation, after every task had been reviewed
+
+- **The suite exited non-zero while reporting 186 passing, and nobody noticed
+  for nineteen tasks.** Vitest was catching an unhandled rejection: two test
+  fixtures called `void signIn(...)`, and `signIn` rejects when the credentials
+  are refused — in the application it is `SignInScreen` that catches it. Every
+  per-task gate had been read as `grep "Tests "`, which cannot see an error line
+  or an exit code. **Read the exit code, not the summary line.**
+- **The declared dependency direction was wrong, and no test could have said
+  so.** `design.md` put `routing` below the screens it routes to, which no route
+  table can honour; screens and components were the wrong way round; and the
+  session provider belongs below the queries, because `useStanding` asks whether
+  a session exists before it asks anything of the backend. The code was right in
+  every case. The order is now computed in `src/architecture.test.ts` instead of
+  asserted in prose — the last claim in this feature to move from a document
+  into a test.
+- **A probe found a bug in that very test.** Imports are written extensionless,
+  so a layer named `src/routes/AppRoutes.tsx` matched the file and never any
+  import *of* it — a layer that could only ever be found innocent. Naming it
+  without the extension fixes it, and the probe that imports the route table
+  from a screen now fails.
+- **The real artifact boots.** The built bundle was served and loaded in a
+  browser: `/` redirected to `/sign-in`, the form rendered, and the console
+  carried no errors. Nineteen tasks of jsdom prove the components; only this
+  proves the bundle.

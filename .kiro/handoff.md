@@ -21,9 +21,17 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
   `spec.json` moving to `implemented`.
 - `pnpm lint`, `pnpm typecheck`, `pnpm test` (186 passing, 21 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-validate-impl frontend-shell` as a feature-level
-  GO/NO-GO gate. After that, the next feature's spec cycle — nothing in this one
-  is left open.
+- **Feature validation ran and returned GO.** It found two things nineteen task
+  reviews had not: the suite was exiting non-zero on an unhandled rejection from
+  two test fixtures while reporting every test passing, and the dependency
+  direction in `design.md` was wrong in three places. Both fixed; the direction
+  is now computed by `src/architecture.test.ts`. The built bundle was also
+  loaded in a real browser — it boots, routes and logs nothing.
+- **Read the exit code, not the summary line.** Every per-task gate in this
+  feature was read as `grep "Tests "`, which cannot see an error line. Use
+  `pnpm test; echo $?`.
+- Próximo paso exacto: the next feature's spec cycle. Nothing in this one is
+  left open.
 
 Camilo commits. Propose a message, never run `git commit`.
 

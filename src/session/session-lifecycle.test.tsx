@@ -31,7 +31,14 @@ function Subject({ seen }: { seen: string[] }) {
       {status.state === 'signed-out' && (
         <button
           onClick={() => {
-            void signIn({ email: 'caller@example.com', password: 'secret' });
+            // Caught, not `void`ed: `signIn` rejects when the credentials
+            // are refused, and in the application it is `SignInScreen` that
+            // catches it. A stand-in that ignores the rejection makes it an
+            // unhandled one, which Vitest reports as an error even while every
+            // test passes.
+            signIn({ email: 'caller@example.com', password: 'secret' }).catch(
+              () => undefined,
+            );
           }}
         >
           sign in

@@ -63,8 +63,24 @@ The dependency direction is a rule, not a preference. Each module imports only
 from those to its left.
 
 ```
-types → refusal → access → session → http → endpoints → queries → routing → screens → components
+types → refusal → access → session store → http → endpoints
+      → session provider → queries
+      → routing primitives → components → screens → route table
 ```
+
+**Corrected during feature validation, and now enforced by
+`src/architecture.test.ts` rather than stated here.** The first version of this
+line put `routing` below the screens it routes to, which no route table can
+honour — the composition root imports every screen by definition. Two other
+orderings were wrong with it: screens import shared components rather than the
+reverse, and the session provider sits below the queries, because `useStanding`
+asks whether a session exists before it asks anything of the backend while
+nothing in the provider reaches for a query.
+
+`src/routes/last-tenant.ts` and the two route guards are *routing primitives* —
+they read the address and the session, and the frame consults them. They are
+not the table, which is why they sit below components while `AppRoutes.tsx`
+sits above everything.
 
 - `src/api/**` is the only place that may call `fetch`, and ESLint already
   enforces it. Everything else imports functions, never URLs.
@@ -625,6 +641,8 @@ observing that nothing went wrong.
 | `test/server.ts` | The MSW server for Node |
 | `test/render.tsx` | Renders a subject inside providers and a router at a given address |
 | `test/harness.test.tsx` | The harness proving itself: interception, counting, refusal bodies |
+| `src/architecture.test.ts` | The dependency direction above, computed rather than believed |
+| `test/journey.test.tsx` | The whole journey, and a role changed with the credential unchanged |
 
 ### Modified
 

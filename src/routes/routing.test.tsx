@@ -35,7 +35,10 @@ function SignInStandIn() {
       </p>
       <button
         onClick={() => {
-          void signIn({ email: 'caller@example.com', password: 'secret' });
+          // Caught, not `void`ed — see the note in session-lifecycle.test.tsx.
+          signIn({ email: 'caller@example.com', password: 'secret' }).catch(
+            () => undefined,
+          );
         }}
       >
         sign in
