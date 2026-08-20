@@ -5,18 +5,20 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 13/19 tasks.** Groups 1 to 5 are complete.
-  `spec.json` phase `tasks-generated`, all three approvals `true`.
-- Tarea activa: **5.3 complete and VERIFIED** — the three dead ends, each with
-  its own words and none of them reading as a breakage. Next actionable is
-  **6.1**, the sign-in form, which replaces the stand-in at `/sign-in`.
-- Ciclo TDD: 5.3 RED → GREEN → VERIFIED by six probes. Two tests that asserted
-  an absence before the frame had rendered were strengthened to await it first.
-  6.1 NOT_STARTED.
-- Último commit: `a350fa7` feat(frontend-shell): put the selected tenant in the address, and only there. **Uncommitted in the tree:** task 5.3.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (140 passing, 15 files) and
+- **`frontend-shell` in progress: 14/19 tasks.** Groups 1 to 5 are complete and
+  6.1 is done. `spec.json` phase `tasks-generated`, all three approvals `true`.
+- Tarea activa: **6.1 complete and VERIFIED** — the sign-in form, now at
+  `/sign-in` in place of the stand-in. The only remaining stand-in in the route
+  table is the members screen. Next actionable is **6.2**, the members of the
+  selected tenant.
+- Ciclo TDD: 6.1 RED → GREEN → VERIFIED by eight probes. A test caught that
+  `type="email"` blocks submission of a malformed address, which is the format
+  check requirement 1.5 warns against; the form now carries `noValidate`. 6.2
+  NOT_STARTED.
+- Último commit: `1c4da64` feat(frontend-shell): give each dead end its own words, and none of them a crash. **Uncommitted in the tree:** task 6.1.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (149 passing, 16 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 6.1` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 6.2` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

@@ -200,7 +200,7 @@ Everything downstream depends on these two, and neither depends on the other.
 
 ## 6. The two screens
 
-- [ ] 6.1 Signing in
+- [x] 6.1 Signing in
   - Address and password; on success, the destination remembered in 5.1
   - Report a refusal as the pair not matching, never which half was wrong, and
     never whether the address is known to the platform
@@ -604,3 +604,27 @@ inherits them rather than rediscovering them.
   is gone on every page load, and it is accidentally right for a fraction of a
   second. That is why the waiting case has a test of its own rather than being
   folded into the others.
+
+- **`type="email"` is a format check, and a test caught it.** The browser
+  refuses to submit a malformed address, so the request for `not-an-address`
+  never went out and the test counting it failed. That is the shape check
+  requirement 1.5 warns against arriving by the back door: it treats "malformed"
+  and "well-formed but unknown" differently, which is a distinction this
+  platform deliberately withholds. The type is kept for the keyboard and the
+  password manager, with `noValidate` on the form; removing `noValidate` fails
+  that test again.
+- **The form's objection and the platform's answer are two channels.** Only the
+  latter is a `role="alert"`, and only the latter may use the refusal's words.
+  Both probes bite: rendering the objection through the alert, and giving it the
+  refusal's sentence. One channel is how "please fill this in" ends up sounding
+  like a verdict from the backend.
+- **The in-flight guard is in the handler, not only on the button.** A disabled
+  button still leaves the form submittable from the keyboard, so the test
+  submits the form directly rather than clicking — a test that clicked a
+  disabled button would pass with no guard at all. Two sign-ins would issue two
+  refresh tokens and orphan one.
+- **A probe can be neutralised by the line after it.** The first attempt at the
+  two-channel probe set a refusal immediately before the code that clears it,
+  and passed everything — not because the tests were weak but because the probe
+  was. Placed where the claim actually lives, it bit at once. Worth remembering:
+  a probe that fails nothing is a claim about the probe until it has been read.

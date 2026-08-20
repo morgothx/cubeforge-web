@@ -11,6 +11,8 @@ describe('the application', () => {
   it('asks a person with no session for a password', async () => {
     render(<App />);
 
-    expect(await screen.findByText(/sign in/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /sign in/i }),
+    ).toBeInTheDocument();
   });
 });

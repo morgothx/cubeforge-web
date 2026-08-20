@@ -180,7 +180,11 @@ describe('the route table', () => {
       ['/nowhere-at-all', /not available/i],
     ] as const) {
       const view = renderSignedOut(<AppRoutes />, address);
-      expect(await screen.findByText(expected)).toBeInTheDocument();
+      // By heading: the form names itself in three places at once, and a bare
+      // text match would be satisfied by the button alone.
+      expect(
+        await screen.findByRole('heading', { name: expected }),
+      ).toBeInTheDocument();
       view.unmount();
     }
   });
@@ -204,7 +208,9 @@ describe('the route table', () => {
   it('asks for a password before any of them', async () => {
     for (const address of ['/', '/t/t-acme/members', '/no-tenants']) {
       const view = renderSignedOut(<AppRoutes />, address);
-      expect(await screen.findByText(/sign in/i)).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: /sign in/i }),
+      ).toBeInTheDocument();
       view.unmount();
     }
   });
