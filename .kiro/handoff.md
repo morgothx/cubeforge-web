@@ -5,20 +5,19 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 14/19 tasks.** Groups 1 to 5 are complete and
-  6.1 is done. `spec.json` phase `tasks-generated`, all three approvals `true`.
-- Tarea activa: **6.1 complete and VERIFIED** — the sign-in form, now at
-  `/sign-in` in place of the stand-in. The only remaining stand-in in the route
-  table is the members screen. Next actionable is **6.2**, the members of the
-  selected tenant.
-- Ciclo TDD: 6.1 RED → GREEN → VERIFIED by eight probes. A test caught that
-  `type="email"` blocks submission of a malformed address, which is the format
-  check requirement 1.5 warns against; the form now carries `noValidate`. 6.2
-  NOT_STARTED.
-- Último commit: `1c4da64` feat(frontend-shell): give each dead end its own words, and none of them a crash. **Uncommitted in the tree:** task 6.1.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (149 passing, 16 files) and
+- **`frontend-shell` in progress: 15/19 tasks.** Groups 1 to 5 are complete, and
+  6.1 and 6.2 are done. No stand-ins remain in the route table. `spec.json`
+  phase `tasks-generated`, all three approvals `true`.
+- Tarea activa: **6.2 complete and VERIFIED** — the members listing, with the
+  address column present or absent and never blank. Next actionable is **6.3**,
+  what an administrator may change.
+- Ciclo TDD: 6.2 RED → GREEN → VERIFIED by seven probes. Note for 6.3: the
+  invalidation keys are already in `src/queries/keys.ts`, and `useMembers` is
+  keyed per tenant. 6.3 NOT_STARTED.
+- Último commit: `ae100ac` feat(frontend-shell): a form whose discipline is what it declines to say. **Uncommitted in the tree:** task 6.2.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (157 passing, 17 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 6.2` — **with the task
+- Próximo paso exacto: `/kiro-impl frontend-shell 6.3` — **with the task
   number**, which is what selects manual mode. Manual mode has no commit step at
   all; without numbers it commits per task and breaks the rule below.
 

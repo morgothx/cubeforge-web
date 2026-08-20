@@ -215,7 +215,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
   - _Boundary: Sign-in screen_
 
-- [ ] 6.2 (P) The members of the selected tenant
+- [x] 6.2 (P) The members of the selected tenant
   - Each member with the role they hold and whether their membership is
     currently active, which means revoked ones are in the listing
   - Show addresses when the backend sent them, and when it did not, **leave no
@@ -628,3 +628,29 @@ inherits them rather than rediscovering them.
   and passed everything — not because the tests were weak but because the probe
   was. Placed where the claim actually lives, it bit at once. Worth remembering:
   a probe that fails nothing is a claim about the probe until it has been read.
+
+- **The address column exists or it does not; there is no in-between.** The
+  assertion is not "the addresses are absent" — a column of blanks satisfies
+  that — but that the column headers are exactly `Role, Status` and that no cell
+  in the listing is the empty string. Two probes bite: always rendering the
+  column, and rendering it when *any* address was disclosed.
+- **`every` rather than `some`, and the reason is the failure mode.** The backend
+  withholds all addresses or none, so the two agree in practice; where they
+  would not, `some` produces exactly the blank cell requirement 7.2 is about.
+  Showing none is the reading that cannot produce one.
+- **`members ?? []` is the shape of the 8.4 mistake.** An empty listing rendered
+  while the real one is on its way says nobody is here, and "no members yet" is
+  a sentence somebody acts on by inviting people. The pending state and the
+  genuinely empty tenant have separate tests, and the probe that collapses them
+  fails one each.
+- **The source scan from 3.3 fires on comments too.** A comment naming the
+  members path — in backticks, inside a doc block — was reported as a second
+  file naming a route. Correct in spirit and a nuisance in practice: prose about
+  a route reads exactly like a route. Describe the path in words inside
+  comments, or the scan will have to learn what a comment is.
+- **A guard the router makes unreachable is still worth having, and testable.**
+  `useMembers` asks nothing without a tenant. Today no route renders the screen
+  without one, but that is a property of today's routes rather than of the hook,
+  and the failure mode is a refused request that sends the request layer off to
+  renew a perfectly good credential. Same lesson as 5.1's remembered-address
+  guard, applied before a probe had to find it.
