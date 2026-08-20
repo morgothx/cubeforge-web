@@ -1,0 +1,53 @@
+name: CI
+
+# Every push to the default branch, and every pull request aimed at it. A gate
+# that only runs on one of the two is a gate somebody routes around by accident.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A second push to the same branch makes the first run irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: lint, types, tests, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the pinned version from package.json's `packageManager`, so the
+      # runner and the laptop cannot drift apart.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # `--frozen-lockfile` fails rather than resolving something new, which is
+      # the difference between installing what was reviewed and installing
+      # whatever is current.
+      - run: pnpm install --frozen-lockfile
+
+      # `lint:check`, not `lint`: the everyday script carries `--fix`, and a
+      # gate that repairs the violation it was meant to catch reports success
+      # for work nobody did.
+      - run: pnpm lint:check
+
+      # The type checker is a separate gate on purpose. Vite transpiles without
+      # checking, so the test runner has reported a suite green while `tsc`
+      # reported errors in the same files — more than once in this repository.
+      - run: pnpm typecheck
+
+      # Read for its exit code. This suite once reported "186 passed" while
+      # exiting non-zero on an unhandled rejection, and every local gate had
+      # been read as a grep for the summary line.
+      - run: pnpm test
+
+      - run: pnpm build
