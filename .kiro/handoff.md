@@ -5,23 +5,25 @@ Written 2026-08-18. Receiver: the next agent session. Read this, then
 
 ## Where things stand
 
-- **`frontend-shell` in progress: 18/19 tasks.** Only **7.2** remains — asserting
-  the served addresses against the list this feature committed to, so a route
-  added later fails by name. `spec.json` phase `tasks-generated`, all three
-  approvals `true`.
-- Tarea activa: **7.1 complete and VERIFIED** — the end-to-end journey in
-  `test/journey.test.tsx`, over a harness that changes when it is asked to.
-  Next actionable is **7.2**.
-- Ciclo TDD: 7.1 wrote no production code; two of its three tests passed
-  immediately, which is what a validation task looks like when the parts were
-  right. Five probes, four against the application and one against the harness
-  to prove the credential assertion is not inert. 7.2 NOT_STARTED.
-- Último commit: `8aaed3f` feat(frontend-shell): say what happened in one voice, and prove it by scanning. **Uncommitted in the tree:** task 7.1.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (177 passing, 20 files) and
+- **`frontend-shell` is complete: 19/19 tasks.** `spec.json` phase is
+  `implemented`. Every requirement in `requirements.md` is satisfied and
+  traceable through `design.md`'s table.
+- Tarea activa: none. **7.2 complete and VERIFIED** was the last one — the
+  served addresses are asserted against the list the feature committed to, so a
+  route added later fails by name.
+- Ciclo TDD: all 19 tasks closed RED → GREEN → VERIFIED, each with probes that
+  break what every test guards. The recurring finding across the feature, worth
+  carrying into the next one: **assert which refusal, never that there was one;
+  and a property that only matters for code not yet written cannot be tested
+  behaviourally — encode it in a type, or scan the source, or admit it is
+  unenforced.**
+- Último commit: `c9ecaad` test(frontend-shell): the whole journey, and the property only it exposes. **Uncommitted in the tree:** task 7.2, plus
+  `spec.json` moving to `implemented`.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (186 passing, 21 files) and
   `pnpm build` all pass.
-- Próximo paso exacto: `/kiro-impl frontend-shell 7.2` — **with the task
-  number**, which is what selects manual mode. Manual mode has no commit step at
-  all; without numbers it commits per task and breaks the rule below.
+- Próximo paso exacto: `/kiro-validate-impl frontend-shell` as a feature-level
+  GO/NO-GO gate. After that, the next feature's spec cycle — nothing in this one
+  is left open.
 
 Camilo commits. Propose a message, never run `git commit`.
 

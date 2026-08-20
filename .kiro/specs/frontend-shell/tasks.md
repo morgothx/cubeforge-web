@@ -277,7 +277,7 @@ Everything downstream depends on these two, and neither depends on the other.
   - _Requirements: 1.1, 4.1, 4.4, 6.3, 7.5, 9.1, 9.4_
   - _Boundary: End to end_
 
-- [ ] 7.2 Keep the excluded things excluded
+- [x] 7.2 Keep the excluded things excluded
   - Assert the served addresses against the list this feature committed to, so
     a route added later fails by name rather than slipping in
   - The excluded areas — provisioning tenants, issuing setup tokens,
@@ -726,3 +726,21 @@ inherits them rather than rediscovering them.
   across the change, treating the backend's refusal as impossible, skipping the
   listing re-read, and signing out without discarding the credential each turn
   exactly one journey test red.
+
+- **The excluded areas are excluded by an absence, and an absence needs a
+  statement.** Nothing in the code decides that this feature does not provision
+  tenants or draw charts — they are out simply because no address reaches them,
+  which is a property no ordinary test would notice disappearing. The list of
+  served addresses is written by hand in the test and compared against the route
+  table: adding a route without adding it there fails by name, which is the only
+  moment anybody will ask whether it belongs in this feature at all.
+- **Two halves, because either alone is a half-truth.** The list is complete only
+  if the table is the only table, so a second scan requires that `<Route` appears
+  in `AppRoutes.tsx` and nowhere else — a `<Routes>` planted inside a screen
+  fails it. And the behavioural half walks seven excluded addresses and requires
+  each to answer "not available", because "the screen does not exist" is
+  trivially true of a screen nobody wrote.
+- **Removing the catch-all fails twelve tests.** Worth recording: the fallback is
+  not only requirement 6.2's answer for an unknown address, it is what every
+  other test relies on to distinguish "this address leads nowhere" from "this
+  address renders nothing at all".
