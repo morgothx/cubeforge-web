@@ -136,8 +136,16 @@ describe('putting a refusal into words', () => {
     expect(describeRefusal({ kind: 'session-ended' })).toMatch(/sign in/i);
   });
 
-  it('says to wait when too many attempts were made', () => {
-    expect(describeRefusal({ kind: 'throttled' })).toMatch(/wait|again/i);
+  it('says to wait when too many attempts were made, and does not say for how short', () => {
+    const words = describeRefusal({ kind: 'throttled' });
+
+    expect(words).toMatch(/too many attempts/i);
+    // The backend's cooldown is **900 seconds**. "Please wait a moment and try
+    // again" is a promise it will refuse for a quarter of an hour, and the
+    // notice deliberately offers no button for the same reason: pressing one
+    // could not work. Words that understate the wait are the same mistake in
+    // prose.
+    expect(words).not.toMatch(/a moment|moment|shortly|in a few/i);
   });
 
   it('answers every outcome in the vocabulary', () => {

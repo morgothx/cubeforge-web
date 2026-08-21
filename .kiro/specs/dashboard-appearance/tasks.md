@@ -106,7 +106,7 @@ Four came from Camilo, one from a check against the backend.
 
 ## 4. Saying what happened
 
-- [ ] 4.1 Two kinds of notice
+- [x] 4.1 Two kinds of notice
   - A notice with a cause, tinted and anchored to the field the backend blamed;
     a neutral notice for everything else
   - `unreachable` keeps its retry; `throttled` does not get one (decision 3)
@@ -250,3 +250,22 @@ Findings recorded during implementation belong here.
   backend has said which would be a guess, and the guess would be about what
   the reader is allowed to do — the one subject on this screen where being
   briefly wrong is worst.
+- **The throttled copy was the real change; the missing button already was.**
+  `RefusalNotice` only ever offered a retry for `unreachable`, so decision 3 was
+  already the behaviour — what contradicted it was the words. "Please wait a
+  moment and try again" is off by a factor of nine hundred against a
+  900-second cooldown, and it offered trying again in prose beside a notice that
+  deliberately offers no button. It now says the thing is locked for a while and
+  to come back later, which agrees with both the backend and the absence.
+- **The cooldown is not read from the response, and that was checked rather than
+  assumed.** NestJS's throttler does set a `Retry-After` header — but suffixed
+  with the throttler's *name*, and this backend registers named throttlers per
+  address and per origin. Reading it would make the dashboard depend on a
+  NestJS naming detail in another repository to print a number. Vague and true
+  beat precise and coupled; if the number is ever wanted, the honest route is
+  the backend putting it in the body it already controls.
+- **"Two kinds" is a colour, and one test says so out loud.** The variants
+  differ by a class name, which is the only handle jsdom has. That test asserts
+  the component *makes* the distinction and claims nothing about what it looks
+  like; the appearance was checked in a browser, where the caused notice renders
+  tinted with its info mark under the invite row.

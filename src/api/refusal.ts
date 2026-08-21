@@ -111,7 +111,11 @@ export function describeRefusal(refusal: Refusal): string {
     case 'unavailable':
       return 'This is not available.';
     case 'throttled':
-      return 'Too many attempts. Please wait a moment and try again.';
+      // Not "wait a moment". The backend's cooldown is 900 seconds, so a
+      // moment is off by a factor of nine hundred, and somebody who believes
+      // it comes back in ten seconds to be refused again. The notice offers no
+      // button for the same reason (`RefusalNotice`).
+      return 'Too many attempts. This is locked for a while; try again later.';
     case 'unreachable':
       return 'The service could not be reached. Please try again.';
     case 'session-ended':

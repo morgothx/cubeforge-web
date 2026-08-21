@@ -1,3 +1,4 @@
+import { Info, RefreshCw } from 'lucide-react';
 import { describeRefusal, type Refusal } from '../api/refusal';
 
 /**
@@ -9,9 +10,21 @@ import { describeRefusal, type Refusal } from '../api/refusal';
  * requires that only this component calls `describeRefusal`.
  *
  * What it renders is prose and nothing else — never a status, a body, or an
- * identifier (8.5). A retry is offered for exactly one outcome: a service that
- * could not be reached is worth asking again, and a refusal is not, so the
- * button's presence is itself the distinction requirement 8.3 asks for.
+ * identifier (8.5).
+ *
+ * **Two shapes, one component.** A refusal that named a cause is about
+ * something the person did and can fix, so it is tinted and sits against the
+ * field the backend blamed. Everything else is about the platform rather than
+ * about them, so it is neutral and sits above the block it concerns. Two
+ * components would be two vocabularies that agree until one is edited.
+ *
+ * **A retry is offered for exactly one outcome.** A service that could not be
+ * reached is worth asking again, and nothing else here is: a refusal that named
+ * a cause gives the same answer to the same input, and a throttled caller is
+ * locked out for 900 seconds — so a button beside that copy could not succeed
+ * for a quarter of an hour, and somebody who pressed it and was refused
+ * identically would conclude the product is broken. The button's presence is
+ * itself the distinction requirement 8.3 asks for.
  */
 export function RefusalNotice({
   refusal,
@@ -22,14 +35,22 @@ export function RefusalNotice({
   onRetry?: () => void;
   id?: string;
 }) {
+  const named = refusal.kind === 'rejected';
+
   return (
-    <p role="alert" id={id}>
-      {describeRefusal(refusal)}
+    <div
+      role="alert"
+      id={id}
+      className={named ? 'notice notice-caused' : 'notice notice-neutral'}
+    >
+      {named && <Info size={15} strokeWidth={1.5} aria-hidden />}
+      <span>{describeRefusal(refusal)}</span>
       {refusal.kind === 'unreachable' && onRetry !== undefined && (
-        <button type="button" onClick={onRetry}>
+        <button type="button" className="btn btn-secondary" onClick={onRetry}>
+          <RefreshCw size={15} strokeWidth={1.5} aria-hidden />
           Try again
         </button>
       )}
-    </p>
+    </div>
   );
 }

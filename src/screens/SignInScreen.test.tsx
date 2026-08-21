@@ -3,7 +3,13 @@ import { AppRoutes } from '../routes/AppRoutes';
 import { SignInScreen } from './SignInScreen';
 import { backend, refusals } from '../../test/handlers';
 import userEvent from '@testing-library/user-event';
-import { fireEvent, renderAt, screen, waitFor } from '../../test/render';
+import {
+  fireEvent,
+  renderAt,
+  screen,
+  waitFor,
+  within,
+} from '../../test/render';
 import { countRequests, held, server } from '../../test/server';
 import { session } from '../api/session';
 import { SessionProvider } from '../session/SessionProvider';
@@ -103,9 +109,14 @@ describe('signing in', () => {
 
     const said = await screen.findByRole('alert');
     // 1.3: distinct from a wrong pair. Told "that did not match", somebody
-    // types it again more carefully; told to wait, they wait.
-    expect(said).toHaveTextContent(/wait/i);
+    // types it again more carefully; told they are locked out, they come back.
+    expect(said).toHaveTextContent(/too many attempts/i);
+    expect(said).toHaveTextContent(/later/i);
     expect(said.textContent ?? '').not.toMatch(/did not match/i);
+    // And nothing to press. The cooldown is 900 seconds, so a button here
+    // could not succeed for a quarter of an hour — and this is the screen
+    // where being throttled actually happens.
+    expect(within(said).queryByRole('button')).toBeNull();
   });
 
   it('does not claim a wrong password when the service cannot be reached', async () => {
