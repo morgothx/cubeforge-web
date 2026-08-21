@@ -1,14 +1,8 @@
 /*
- * Nothing but a readable default. Styling is `frontend-shell`'s decision, and
- * a scaffold that guessed at one would have to be undone first.
+ * The application's ground.
+ *
+ * The design system is imported first and carries its own reset; nothing is
+ * declared here that either sheet already answers.
  */
-:root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  line-height: 1.5;
-}
-
-body {
-  margin: 0;
-  padding: 2rem;
-}
+@import './styles/design-system.css';
+@import './styles/theme.css';

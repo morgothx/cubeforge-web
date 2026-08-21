@@ -1,0 +1,68 @@
+/*
+ * What this product decides on top of the design system.
+ *
+ * Kept apart from `design-system.css` so that sheet can stay a byte-for-byte
+ * copy of the handoff's. Everything here is either a re-tune of a token the
+ * system already declares, or a thing the system leaves open.
+ */
+
+:root {
+  /*
+   * Square, everywhere. The system ships a radius scale and this product uses
+   * none of it: the design is a line drawing, and a rounded corner on one
+   * control is the thing that makes every other one look wrong.
+   */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+}
+
+/*
+ * The dark theme: the same token names, re-tuned. Never a second palette —
+ * every tag, notice and border in the system reads from these, so they invert
+ * for free, and a token that existed only here would be a colour the light
+ * theme has no answer for. A test asserts that.
+ */
+@media (prefers-color-scheme: dark) {
+  /* Before anybody has chosen, follow the system — but never override a
+     choice, which is why this is scoped away from an explicit light. */
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --color-bg: #1a1d20;
+    --color-surface: #25292d;
+    --color-text: #f5f5f8;
+    --color-accent: #94bce3;
+    --color-divider: color-mix(in srgb, #f5f5f8 18%, transparent);
+
+    --color-accent-100: #2c455d;
+    --color-accent-200: #416180;
+    --color-accent-700: #b5d9fd;
+    --color-accent-800: #d6ebff;
+
+    --color-neutral-100: #2b2b2d;
+    --color-neutral-800: #e7e7ea;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: #1a1d20;
+  --color-surface: #25292d;
+  --color-text: #f5f5f8;
+  --color-accent: #94bce3;
+  --color-divider: color-mix(in srgb, #f5f5f8 18%, transparent);
+
+  --color-accent-100: #2c455d;
+  --color-accent-200: #416180;
+  --color-accent-700: #b5d9fd;
+  --color-accent-800: #d6ebff;
+
+  --color-neutral-100: #2b2b2d;
+  --color-neutral-800: #e7e7ea;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}

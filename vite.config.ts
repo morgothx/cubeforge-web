@@ -25,6 +25,10 @@ export default defineConfig({
     },
   },
   test: {
+    // The runner stubs stylesheet imports by default, which also empties the
+    // `?raw` ones — and a test that reads the design tokens then asserts
+    // against an empty string, in silence. Nothing else here imports CSS.
+    css: true,
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
