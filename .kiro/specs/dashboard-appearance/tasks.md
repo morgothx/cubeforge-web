@@ -116,7 +116,7 @@ Four came from Camilo, one from a check against the backend.
   - _Design: "Refusals"_
   - _Boundary: Refusal notice_
 
-- [ ] 4.2 Waiting, and empty, as two different things
+- [x] 4.2 Waiting, and empty, as two different things
   - Waiting: dashed frame, ghost bars, `aria-busy`
   - Answered and empty: solid frame, its own words
   - Done when neither can be mistaken for the other and they remain separate
@@ -269,3 +269,27 @@ Findings recorded during implementation belong here.
   the component *makes* the distinction and claims nothing about what it looks
   like; the appearance was checked in a browser, where the caused notice renders
   tinted with its info mark under the invite row.
+- **The handoff's empty-state line is a lie to a viewer.** "Invite someone
+  above and they will appear here" — above a viewer there is no form, because
+  7.4 deliberately did not give them one. Sending somebody to look for a control
+  they were denied is worse than saying nothing, so the line is chosen by the
+  same `may` the form is: an administrator is told what to do, and everybody
+  else is told who can do it.
+- **The empty state is very nearly unreachable, and is built anyway.** A caller
+  reaches a tenant *by being a member of it*, so the listing always contains at
+  least their own row. What makes it worth having is that the alternative to an
+  answered-and-empty frame is not a blank — it is the waiting frame never
+  resolving, or a table with a header and no rows. The state costs one small
+  component and removes a whole category of "did it break?".
+- **`asyncUtilTimeout` was set equal to the test timeout, which hides the
+  diagnosis.** A query that never matches then exhausts the *test* rather than
+  itself, and the report is "timed out in 5000ms" instead of the element it
+  could not find and the ones it found instead. Found the honest way: the new
+  waiting frame says "Waiting" *and* "Loading the members…", so a pattern
+  matching either matched twice, and the retry loop ran until the test died.
+  Now 3s under a 10s test timeout.
+- **The ghost bars needed a token the handoff's dark list does not mention.**
+  They are drawn from `--color-neutral-300`, whose light value is near-white:
+  two bright rectangles on a dark ground, the loudest thing on a screen whose
+  entire message is "wait". Re-tuned with the rest, which is what "the same
+  tokens re-tuned" means when the list turns out to be incomplete.

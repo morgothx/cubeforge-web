@@ -36,5 +36,10 @@ export default defineConfig({
     // worse than no test at all — it reads as coverage. The harness lives in
     // `test/`, and the first version of this pattern named only `src/`.
     include: ['src/**/*.test.{ts,tsx}', 'test/**/*.test.{ts,tsx}'],
+    // Comfortably above Testing Library's `asyncUtilTimeout` (`test/setup.ts`).
+    // With the two equal, a query that never matches exhausts the *test* before
+    // it exhausts itself, and the report is "timed out in 5000ms" rather than
+    // the element it could not find and the ones it found instead.
+    testTimeout: 10_000,
   },
 });

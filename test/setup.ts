@@ -13,8 +13,13 @@ import { forgetRequests, server } from './server';
  * faster. Nothing here waits on a timer; every one of these is waiting for a
  * render that has already been asked for, so a longer ceiling costs nothing
  * when the code is right and buys a diagnosis when it is not.
+ *
+ * Kept **below** the test timeout, which is the mistake this line made first:
+ * set equal to it, a query that never matches exhausts the test rather than
+ * itself, and the report is "timed out in 5000ms" instead of the element it
+ * could not find and the ones it found instead.
  */
-configure({ asyncUtilTimeout: 5_000 });
+configure({ asyncUtilTimeout: 3_000 });
 
 /**
  * `onUnhandledRequest: 'error'` on purpose. A request nobody wrote a handler

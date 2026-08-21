@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { may } from '../access/permissions';
 import { fieldBlamed } from '../api/refusal';
 import { Corners } from '../components/Corners';
+import { Empty } from '../components/Empty';
 import { RefusalNotice } from '../components/RefusalNotice';
 import { Waiting } from '../components/Waiting';
 import {
@@ -96,7 +97,20 @@ function Listing({
   callerPersonId: string | undefined;
 }) {
   if (members.length === 0) {
-    return <p>This tenant has no members yet.</p>;
+    return (
+      <Empty title="This tenant has no members yet">
+        {/*
+          What to do about it, and only where there is something to do. The
+          handoff's line is "Invite someone above and they will appear here",
+          which is a lie to a viewer: there is no form above them. Telling
+          somebody to press a control they were deliberately not given is worse
+          than saying nothing.
+        */}
+        {role !== undefined && may(role, 'members:invite')
+          ? 'Invite someone above and they will appear here.'
+          : 'An administrator of this tenant can invite people to it.'}
+      </Empty>
+    );
   }
 
   const mayChangeRole = role !== undefined && may(role, 'members:change-role');

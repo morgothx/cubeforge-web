@@ -158,7 +158,13 @@ describe('while the listing is on its way', () => {
 
     renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
 
-    expect(await screen.findByText(/loading|waiting/i)).toBeInTheDocument();
+    // Precise: since task 4.2 the waiting frame says "Waiting" *and* what it
+    // is loading, so a pattern matching either matches twice.
+    expect(await screen.findByRole('status')).toHaveAttribute(
+      'aria-busy',
+      'true',
+    );
+    expect(screen.getByText(/loading the members/i)).toBeInTheDocument();
     // 8.4: "no members yet" and "not here yet" are different answers, and only
     // one of them is a reason to invite somebody.
     expect(screen.queryByText(/no members/i)).toBeNull();
@@ -265,5 +271,31 @@ describe('what the screen says about the person reading it', () => {
       await screen.findByText(/you are viewer here.*not change it/i),
     ).toBeVisible();
     expect(screen.getByText(/everyone with access to Globex/i)).toBeVisible();
+  });
+});
+
+describe('a tenant with nobody in it', () => {
+  it('tells an administrator what to do about it', async () => {
+    callerIsA('admin');
+    membersAre([]);
+
+    renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
+
+    expect(await screen.findByText(/no members yet/i)).toBeVisible();
+    expect(screen.getByText(/invite someone above/i)).toBeVisible();
+  });
+
+  it('tells somebody who cannot invite something that is true of them', async () => {
+    callerIsA('viewer');
+    membersAre([]);
+
+    renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
+
+    await screen.findByText(/no members yet/i);
+    // The handoff's line is "Invite someone above and they will appear here",
+    // and above a viewer there is no form. Sending somebody to look for a
+    // control they were deliberately not given is worse than saying nothing.
+    expect(screen.queryByText(/invite someone above/i)).toBeNull();
+    expect(screen.getByText(/administrator.*can invite/i)).toBeVisible();
   });
 });

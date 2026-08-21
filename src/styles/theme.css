@@ -41,6 +41,11 @@
     --color-accent-800: #d6ebff;
 
     --color-neutral-100: #2b2b2d;
+    /* Not in the handoff's list, and needed: the ghost bars in the waiting
+       frame are drawn from this step, and the light value is near-white — two
+       bright rectangles on a dark ground, which is the loudest thing on a
+       screen that is telling somebody to wait. */
+    --color-neutral-300: #3a3d40;
     --color-neutral-800: #e7e7ea;
   }
 }
@@ -60,6 +65,9 @@
   --color-accent-800: #d6ebff;
 
   --color-neutral-100: #2b2b2d;
+  /* See the note above: the light value is near-white, and the ghost bars are
+     drawn from it. */
+  --color-neutral-300: #3a3d40;
   --color-neutral-800: #e7e7ea;
 }
 
