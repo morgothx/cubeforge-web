@@ -38,9 +38,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="shell">
+    <div className="grid min-h-screen grid-cols-[262px_1fr]">
       {standing !== undefined && (
-        <header className="panel">
+        <header className="flex flex-col gap-8 border-r border-divider bg-base-200 p-4 pb-6">
           <Brand />
           {selected !== undefined && (
             <TenantSwitcher
@@ -51,8 +51,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
           {selected !== undefined && (
             <SectionNav tenantId={selected.tenantId} />
           )}
-          <div className="panel-identity">
-            <span className="panel-identity-address">{standing.email}</span>
+          <div className="mt-auto flex flex-col items-start gap-2 border-t border-divider pt-4">
+            <span className="text-meta break-all opacity-55">
+              {standing.email}
+            </span>
             {standing.isOperator && (
               /**
                * A fact, and deliberately nothing else.
@@ -64,7 +66,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
                * the destinations offered here with and without it and requires
                * the same set.
                */
-              <span className="tag tag-outline">Platform operator</span>
+              <span className="badge badge-outline badge-primary text-label">
+                Platform operator
+              </span>
             )}
             {/*
               Offered from the frame rather than from any screen. Requirement 4.3
@@ -74,7 +78,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             */}
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-hairline btn-sm"
               onClick={() => {
                 void signOut();
               }}
@@ -85,7 +89,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
       )}
-      <main className="shell-content">{children}</main>
+      <main className="flex flex-col gap-6 p-8 pb-12">{children}</main>
     </div>
   );
 }

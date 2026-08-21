@@ -9,13 +9,8 @@ import { Box } from 'lucide-react';
  */
 export function Brand() {
   return (
-    <span className="panel-brand">
-      <Box
-        size={19}
-        strokeWidth={1.5}
-        color="var(--color-accent)"
-        aria-hidden
-      />
+    <span className="flex items-center gap-2 font-heading text-brand font-semibold tracking-[0.04em]">
+      <Box size={19} strokeWidth={1.5} className="text-primary" aria-hidden />
       CUBEFORGE
     </span>
   );

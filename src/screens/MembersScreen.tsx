@@ -45,9 +45,9 @@ export function MembersScreen() {
   const role = membership?.role;
 
   return (
-    <section className="screen">
-      <div className="screen-title">
-        <h1>Members</h1>
+    <section className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-screen">Members</h1>
         {/*
           Said before anything is asked of the person, and said in words rather
           than by which controls happen to be on screen. Somebody who cannot
@@ -59,7 +59,7 @@ export function MembersScreen() {
           about what the reader is allowed to do.
         */}
         {membership !== undefined && role !== undefined && (
-          <p className="screen-subtitle">
+          <p className="max-w-[70ch] text-control opacity-55">
             Everyone with access to {membership.tenantName}.{' '}
             {whatYouMayDo(role)}
           </p>
@@ -116,15 +116,23 @@ function Listing({
   const mayChangeRole = role !== undefined && may(role, 'members:change-role');
   const mayRevoke = role !== undefined && may(role, 'members:revoke');
 
+  /* The design's header row: small, spaced and quiet — a caption over the
+     column rather than a heading competing with it. daisyUI sets a font size on
+     `.table th`, so this cannot be inherited from the row. */
+  const HEADER =
+    'text-label font-normal uppercase tracking-[0.08em] opacity-55';
+
   return (
     <table className="table">
       <thead>
         <tr>
-          <th scope="col">Member</th>
-          <th scope="col" className="column-role">
+          <th scope="col" className={HEADER}>
+            Member
+          </th>
+          <th scope="col" className={`${HEADER} w-[170px]`}>
             Role
           </th>
-          <th scope="col" className="column-status">
+          <th scope="col" className={`${HEADER} w-[120px]`}>
             Status
           </th>
           {/*
@@ -133,7 +141,7 @@ function Listing({
             says an action exists and is being withheld from you.
           */}
           {(mayChangeRole || mayRevoke) && (
-            <th scope="col" className="column-change">
+            <th scope="col" className={`${HEADER} w-[120px]`}>
               Change
             </th>
           )}
@@ -196,10 +204,10 @@ function MemberRow({
         : undefined;
 
   return (
-    <tr className={member.active ? undefined : 'row-revoked'}>
+    <tr className={member.active ? undefined : 'opacity-55'}>
       <td>
         {who}
-        {isCaller && <span className="row-you"> · you</span>}
+        {isCaller && <span className="text-xs opacity-55"> · you</span>}
       </td>
       {/*
         The role a person holds, and — for a caller who may change it — the
@@ -210,7 +218,7 @@ function MemberRow({
       <td>
         {mayChangeRole ? (
           <select
-            className="input"
+            className="select select-sm w-[130px] text-meta"
             aria-label={`Role of ${who}`}
             value={member.role}
             /*
@@ -239,7 +247,9 @@ function MemberRow({
       </td>
       {/* 7.1: a revoked membership is part of the answer, and says so. */}
       <td>
-        <span className={member.active ? 'tag tag-accent' : 'tag tag-neutral'}>
+        <span
+          className={`badge badge-sm ${member.active ? 'badge-primary badge-soft' : 'badge-neutral badge-soft'}`}
+        >
           {member.active ? 'Active' : 'Revoked'}
         </span>
       </td>
@@ -254,7 +264,7 @@ function MemberRow({
           {mayRevoke && member.active && (
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-hairline btn-sm text-meta"
               /*
                * Named for the person in the accessible name and not on the
                * face of the button. The column is one word wide, and a control
@@ -272,7 +282,9 @@ function MemberRow({
               Revoke
             </button>
           )}
-          {(changeRole.isPending || revoke.isPending) && <span>Changing…</span>}
+          {(changeRole.isPending || revoke.isPending) && (
+            <span className="text-meta opacity-55">Changing…</span>
+          )}
           {refused !== undefined && (
             <RefusalNotice
               refusal={refused.error.refusal}
@@ -322,16 +334,18 @@ function InviteForm({ tenantId }: { tenantId: string }) {
   return (
     <form
       aria-label="Invite a member"
-      className="blueprint card invite"
+      className="relative flex flex-col gap-4 border border-divider p-6"
       onSubmit={send}
     >
       <Corners />
-      <div className="invite-row">
-        <div className="field invite-email">
-          <label htmlFor="invite-email">Invite by email address</label>
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex max-w-[340px] flex-1 flex-col gap-1">
+          <label htmlFor="invite-email" className="text-label opacity-55">
+            Invite by email address
+          </label>
           <input
             id="invite-email"
-            className="input"
+            className="input w-full"
             type="email"
             value={email}
             aria-describedby={
@@ -343,11 +357,13 @@ function InviteForm({ tenantId }: { tenantId: string }) {
           />
         </div>
 
-        <div className="field invite-role">
-          <label htmlFor="invite-role">Role for the new member</label>
+        <div className="flex w-[150px] flex-col gap-1">
+          <label htmlFor="invite-role" className="text-label opacity-55">
+            Role for the new member
+          </label>
           <select
             id="invite-role"
-            className="input"
+            className="select w-full"
             value={role}
             onChange={(event) => {
               setRole(event.target.value as Role);
@@ -363,14 +379,14 @@ function InviteForm({ tenantId }: { tenantId: string }) {
 
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-primary px-6"
           disabled={invite.isPending}
         >
           Invite
         </button>
       </div>
 
-      {invite.isPending && <p className="invite-pending">Inviting…</p>}
+      {invite.isPending && <p className="text-meta opacity-55">Inviting…</p>}
 
       {/*
         Under the row rather than between the two fields.

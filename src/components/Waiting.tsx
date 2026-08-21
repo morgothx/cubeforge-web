@@ -18,11 +18,17 @@
  */
 export function Waiting({ what }: { what: string }) {
   return (
-    <div className="state state-waiting" role="status" aria-busy="true">
-      <p className="state-kicker">Waiting</p>
-      <span className="ghost-bar ghost-bar-long" aria-hidden />
-      <span className="ghost-bar ghost-bar-short" aria-hidden />
-      <p className="state-line">Loading {what}…</p>
+    <div
+      className="flex flex-col gap-2 border border-dashed border-divider p-6"
+      role="status"
+      aria-busy="true"
+    >
+      <p className="font-heading text-kicker font-semibold uppercase tracking-[0.14em] opacity-55">
+        Waiting
+      </p>
+      <span className="block h-[11px] w-[70%] bg-ghost" aria-hidden />
+      <span className="block h-[11px] w-[52%] bg-ghost" aria-hidden />
+      <p className="text-meta opacity-55">Loading {what}…</p>
     </div>
   );
 }

@@ -22,6 +22,11 @@ This repo never talks to AWS directly. During local development it talks to the 
 ## Stack
 
 - React + TypeScript
+- **Tailwind CSS 4 + daisyUI 5** for styling. The design handoff's tokens live
+  as a daisyUI theme in `src/index.css` (`cubeforge` / `cubeforge-dark`); there
+  are no other stylesheets. Do not add plain-CSS component sheets alongside it —
+  the handoff's own `styles.css` was removed precisely because it and daisyUI
+  both define `.btn`, `.card`, `.input` and `.table`.
 - Consumes the Cube.dev API exposed by the backend for dashboard data (do not write raw SQL or hit PostgreSQL/Athena directly from the frontend — always go through the Cube.dev semantic layer via the backend).
 - Local dev points at the backend running against Floci-emulated services.
 

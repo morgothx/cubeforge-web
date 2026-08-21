@@ -13,7 +13,13 @@ import type { TenantMembership } from '../api/types';
  * The role travels with the name because it changes with it (5.3). A list of
  * bare tenant names would leave somebody to find out what they may do in each
  * by trying.
+ *
+ * The rows share edges — `border-t-0` on every one after the first — so the
+ * stack reads as one object rather than as separate buttons.
  */
+const ROW =
+  'flex items-center justify-between gap-2 px-3 py-2 text-control border border-divider [li+li_&]:border-t-0';
+
 export function TenantSwitcher({
   memberships,
   selected,
@@ -22,28 +28,38 @@ export function TenantSwitcher({
   selected: TenantMembership;
 }) {
   return (
-    <nav className="panel-group" aria-label="Tenant">
-      <h2 className="panel-label">Acting in</h2>
-      <ul className="panel-list panel-list-tenants">
+    <nav className="flex flex-col gap-2" aria-label="Tenant">
+      <h2 className="font-heading text-kicker font-semibold uppercase tracking-[0.14em] opacity-55">
+        Acting in
+      </h2>
+      <ul className="flex flex-col">
         {memberships.map((membership) => {
-          const role = (
-            <span className="panel-row-note">{membership.role}</span>
-          );
+          const current = membership.tenantId === selected.tenantId;
 
           return (
             <li key={membership.tenantId}>
-              {membership.tenantId === selected.tenantId ? (
-                <span className="panel-row" aria-current="true">
+              {current ? (
+                // The loudest thing in the panel, deliberately: which tenant
+                // you are acting in is the fact every other thing on the
+                // screen depends on.
+                <span
+                  aria-current="true"
+                  className={`${ROW} bg-primary text-primary-content border-primary`}
+                >
                   {membership.tenantName}
-                  {role}
+                  <span className="text-label opacity-80">
+                    {membership.role}
+                  </span>
                 </span>
               ) : (
                 <Link
-                  className="panel-row"
                   to={`/t/${membership.tenantId}/members`}
+                  className={`${ROW} hover:bg-base-content/7`}
                 >
                   {membership.tenantName}
-                  {role}
+                  <span className="text-label opacity-55">
+                    {membership.role}
+                  </span>
                 </Link>
               )}
             </li>

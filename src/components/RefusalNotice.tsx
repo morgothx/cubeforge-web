@@ -41,12 +41,28 @@ export function RefusalNotice({
     <div
       role="alert"
       id={id}
-      className={named ? 'notice notice-caused' : 'notice notice-neutral'}
+      className={
+        named
+          ? // A cause the backend named: about something the person did and can
+            // fix. The tint is what makes it read as attached to the field
+            // above it rather than as a statement about the screen.
+            'flex items-center gap-2 bg-steel-100 px-3 py-2 text-meta text-steel-800'
+          : // Everything else is about the platform rather than about them:
+            // hairline, no fill, claiming no more attention than the block it
+            // sits above. Never red — the design says state in words.
+            'flex items-center gap-2 border border-divider px-3 py-2 text-meta'
+      }
     >
-      {named && <Info size={15} strokeWidth={1.5} aria-hidden />}
+      {named && (
+        <Info size={15} strokeWidth={1.5} className="shrink-0" aria-hidden />
+      )}
       <span>{describeRefusal(refusal)}</span>
       {refusal.kind === 'unreachable' && onRetry !== undefined && (
-        <button type="button" className="btn btn-secondary" onClick={onRetry}>
+        <button
+          type="button"
+          className="btn btn-hairline btn-sm ml-auto"
+          onClick={onRetry}
+        >
           <RefreshCw size={15} strokeWidth={1.5} aria-hidden />
           Try again
         </button>

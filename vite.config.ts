@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 // From `vitest/config`, not from `vite`: it is the same function widened with
 // the `test` key, which is what lets one file configure the dev server, the
@@ -14,7 +15,7 @@ import { defineConfig } from 'vitest/config';
  * code cannot tell the two apart, which is the point.
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       '/api': {

@@ -22,11 +22,15 @@ export function Empty({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="blueprint state state-empty">
+    <div className="relative flex flex-col gap-2 border border-divider p-6">
       <Corners />
-      <p className="state-kicker">Answered, and empty</p>
-      <p className="state-title">{title}</p>
-      {children !== undefined && <p className="state-line">{children}</p>}
+      <p className="font-heading text-kicker font-semibold uppercase tracking-[0.14em] opacity-55">
+        Answered, and empty
+      </p>
+      <p className="font-heading text-block font-semibold">{title}</p>
+      {children !== undefined && (
+        <p className="text-meta opacity-55">{children}</p>
+      )}
     </div>
   );
 }

@@ -35,7 +35,17 @@ Four came from Camilo, one from a check against the backend.
    makes a reload keep the selection (5.4). The intent — stay in the section,
    only change the tenant — is honoured.
 5. **The theme is in scope**, because the captures want both.
-6. **A revoked membership is offered no revoking** — taken during task 3.1,
+6. **Tailwind and daisyUI, decided mid-feature.** Camilo asked for them after
+   task 4.2, having realised the design brief never named a CSS approach. Taken
+   then rather than later on his reasoning that the rework only grows. It
+   forces one thing: the handoff's stylesheet and daisyUI both define `.btn`,
+   `.card`, `.input`, `.table`, `.radio` and most of the `btn-*` family, and two
+   sheets claiming one name is not a mixture but a race. **daisyUI owns the
+   components; the handoff owns the values.** Task 1.1's byte-for-byte vendored
+   sheet is therefore deleted, and its guarantee — that the design can be
+   replaced wholesale — is replaced by a narrower one: every number in the theme
+   is read out of `styles.css` rather than re-derived.
+7. **A revoked membership is offered no revoking** — taken during task 3.1,
    because the handoff asks for an empty Change cell and that narrows what an
    administrator is offered. Revoking a revoked membership is an action with no
    meaning, and a greyed control would still say it exists and that the caller
@@ -293,3 +303,39 @@ Findings recorded during implementation belong here.
   two bright rectangles on a dark ground, the loudest thing on a screen whose
   entire message is "wait". Re-tuned with the rest, which is what "the same
   tokens re-tuned" means when the list turns out to be incomplete.
+
+## Tailwind and daisyUI (decision 6)
+
+- **The handoff's spacing scale is a 3.4px base**, so `--spacing: 3.4px` lands
+  Tailwind's numeric utilities exactly on it: `p-1` is 3.4, `p-4` is 13.6, `p-8`
+  is 27.2. Nothing has to be translated and "no raw numbers off the scale"
+  enforces itself — an off-scale value can only be written as an arbitrary one,
+  which is visible in review.
+- **Every semantic slot is steel, including `error`.** daisyUI hands each theme
+  an `error`, `success` and `warning` colour whether the design wants one or
+  not, and this one says "no decorative colour beyond the steel accent — state
+  is said in words". Rather than trusting nobody to type `alert-error`, the
+  theme leaves no red to reach for: a stray one is quiet and wrong instead of
+  red and wrong. A test asserts those slots equal `primary`, by comparison
+  rather than by hex, so re-tuning the accent cannot leave a red behind.
+- **The steel ramp is named `steel`, not `accent`.** daisyUI already has an
+  `accent` slot meaning something else; two ramps a letter apart is a bug
+  waiting for a tired afternoon.
+- **`btn-outline` is not the design's secondary button.** daisyUI outlines in
+  `base-content` — white on the dark ground — where this design's secondary
+  button carries the same divider hairline as every other edge. `btn-hairline`
+  is defined once for that.
+- **A probe passed against `--radius-box: 0.5rem`**, because `\s*0` matches the
+  leading zero of `0.5rem`. Anchored on the semicolon now. Third time in this
+  feature that a probe turned out to be a claim about the probe.
+- **The suite barely noticed.** 229 of 232 tests passed untouched through a
+  rewrite of every stylesheet and every component's classes: the only casualty
+  was `styles/tokens.test.ts`, which existed to assert the vendored sheet and is
+  replaced by `src/styles.test.ts`. Nothing else asserts appearance, which was
+  the point of writing them that way.
+- **Open, and Camilo's to decide: the primary button in the light theme.** The
+  handoff specifies accent fill with `--color-bg` text, which is `#f2f2f3` on
+  `#5980a6` — about 3.9:1, under the 4.5:1 that normal-size text wants. The
+  handoff is contrast-aware elsewhere (it moves paragraph accent text to 700 for
+  exactly this reason) so this reads as an oversight rather than a choice, but
+  changing it means changing the accent. Left as designed and flagged.
