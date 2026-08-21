@@ -1,9 +1,9 @@
-import { delay, http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { AppRoutes } from '../routes/AppRoutes';
 import { MembersScreen } from './MembersScreen';
 import { backend, withoutAddresses } from '../../test/handlers';
 import { renderSignedIn, screen, waitFor, within } from '../../test/render';
-import { countRequests, server } from '../../test/server';
+import { countRequests, held, server } from '../../test/server';
 import { session } from '../api/session';
 import type { CallerStanding, Member, Role } from '../api/types';
 
@@ -13,8 +13,10 @@ import type { CallerStanding, Member, Role } from '../api/types';
  * The backend **omits** a member's address from a caller who may not see it —
  * it never sends an empty one — and requirement 7.2 turns on that distinction.
  * A column of blanks says "these people have no address" or "the data failed to
- * arrive"; no column at all says "not for you". Those are different sentences,
- * and only the second is true.
+ * arrive". Neither is true, and the fix is not to drop the column: it is to
+ * name the row with something that is not an address and not a blank. Since
+ * task 3.1 that is an opaque identifier, so the listing always has a column
+ * saying who each row is about.
  */
 
 /**
@@ -74,7 +76,9 @@ describe('the members of the selected tenant', () => {
 
     expect(await screen.findByText('editor@example.com')).toBeInTheDocument();
     expect(rows()).toEqual([
-      ['caller@example.com', 'admin', 'Active'],
+      // The caller's own row says so. Somebody looking for the effect of a
+      // change they are about to make needs to find themselves first.
+      ['caller@example.com · you', 'admin', 'Active'],
       ['editor@example.com', 'editor', 'Active'],
       // 7.1: a revoked membership is part of the answer to "who is in this
       // tenant", and the listing asks for it explicitly.
@@ -82,7 +86,7 @@ describe('the members of the selected tenant', () => {
     ]);
   });
 
-  it('leaves no column where a withheld address would be', async () => {
+  it('names a person it may not name, rather than leaving a blank', async () => {
     membersAre(withoutAddresses(backend.members));
 
     renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
@@ -90,20 +94,41 @@ describe('the members of the selected tenant', () => {
     await waitFor(() => {
       expect(rows()).toHaveLength(3);
     });
-    // Not "the addresses are absent" — a column of blanks would satisfy that.
-    // There is no address column, and no cell is empty.
-    expect(columns()).toEqual(['Role', 'Status']);
+    // The column stays, because "who is this row about" is a question the
+    // listing has to answer either way. What it holds is an identifier, and
+    // no cell is empty — which is the whole of 7.2.
+    expect(columns()).toEqual(['Member', 'Role', 'Status']);
     expect(rows().flat()).not.toContain('');
+    for (const [member] of rows()) {
+      expect(member).toMatch(/^person_[0-9a-f]{6}/);
+    }
   });
 
-  it('shows the column when the backend disclosed the addresses', async () => {
+  it('discloses no address the backend withheld', async () => {
+    membersAre(withoutAddresses(backend.members));
+
+    renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
+
+    await waitFor(() => {
+      expect(rows()).toHaveLength(3);
+    });
+    // The identifier is a substitute for the address, not a decoration beside
+    // it. A row that rendered both would make the whole column pointless.
+    // Scoped to the table: the panel shows the caller their *own* address, and
+    // always did.
+    expect(
+      within(screen.getByRole('table')).queryByText(/@example\.com/),
+    ).toBeNull();
+  });
+
+  it('shows the address where the backend disclosed one', async () => {
     renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
 
     await screen.findByText('editor@example.com');
     expect(columns()).toEqual(['Member', 'Role', 'Status']);
   });
 
-  it('withholds every address when it withholds one', async () => {
+  it('leaves no blank when one address arrives and the others do not', async () => {
     const [first, ...rest] = backend.members;
     membersAre([first, ...withoutAddresses(rest)]);
 
@@ -112,19 +137,21 @@ describe('the members of the selected tenant', () => {
     await waitFor(() => {
       expect(rows()).toHaveLength(3);
     });
-    // The backend withholds all or none, so this cannot happen — and if it
-    // ever does, one blank cell is the exact failure 7.2 is about. Showing
-    // none is the reading that cannot produce one.
-    expect(columns()).toEqual(['Role', 'Status']);
+    // The backend discloses all or none, so this cannot happen. Deciding the
+    // name per row rather than for the listing is what makes it harmless if it
+    // ever does — the reading that cannot produce a blank.
     expect(rows().flat()).not.toContain('');
+    expect(rows()[0]?.[0]).toBe('caller@example.com · you');
+    expect(rows()[1]?.[0]).toMatch(/^person_[0-9a-f]{6}$/);
   });
 });
 
 describe('while the listing is on its way', () => {
   it('says it is waiting rather than showing an empty list', async () => {
+    const listing = held();
     server.use(
       http.get('/api/tenants/:tenantId/members', async () => {
-        await delay(30);
+        await listing.until;
         return HttpResponse.json(backend.members);
       }),
     );
@@ -135,6 +162,7 @@ describe('while the listing is on its way', () => {
     // 8.4: "no members yet" and "not here yet" are different answers, and only
     // one of them is a reason to invite somebody.
     expect(screen.queryByText(/no members/i)).toBeNull();
+    listing.release();
     expect(await screen.findByText('editor@example.com')).toBeInTheDocument();
   });
 

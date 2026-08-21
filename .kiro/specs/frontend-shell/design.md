@@ -578,8 +578,17 @@ test needs the API, Floci or a database.
 
 **Component — `MembersScreen`**
 - An administrator sees addresses and all three actions (7.2, 7.3).
-- An editor and a viewer see neither addresses nor actions, and the list carries
-  no empty address column (7.2, 7.4).
+- **Revised by `dashboard-appearance` task 3.1.** 7.2 was first implemented by
+  dropping the Member column whenever the backend withheld an address. That
+  protected the right thing — *a blank reads as missing data* — by the crudest
+  means available, and it cost the listing the one column that tells its rows
+  apart: a viewer saw three rows of roles and statuses about nobody. The column
+  now always exists and always says something, an address where the backend
+  disclosed one and `person_8c41f2` where it did not. The rule 7.2 was always
+  about is unchanged and is now stated as itself: **never an empty cell where a
+  name would be.**
+- An editor and a viewer see no addresses and no actions, and the Member column
+  holds an opaque identifier rather than a blank (7.2, 7.4).
 - A mutation refreshes the list without a reload (7.5).
 - A `409` "already a member" is shown against the email field (7.6).
 - A `404` on an offered action says only that it is unavailable (7.7, 8.1, 6.3).
@@ -694,7 +703,7 @@ observing that nothing went wrong.
 | 6.3 | Mutations surface `ApiError`; `RefusalNotice` renders it |
 | 6.4 | `AppLayout` operator badge, and no route behind it |
 | 7.1 | `useMembers`, `MembersScreen` |
-| 7.2 | `Member.email` optional; `MembersScreen` omits the column entirely |
+| 7.2 | `Member.email` optional; `member-identity.ts` names the row either way |
 | 7.3 | `MembersScreen` actions, gated by `may` |
 | 7.4 | The same gate, negatively |
 | 7.5 | Mutations invalidate the members key |

@@ -35,6 +35,12 @@ Four came from Camilo, one from a check against the backend.
    makes a reload keep the selection (5.4). The intent — stay in the section,
    only change the tenant — is honoured.
 5. **The theme is in scope**, because the captures want both.
+6. **A revoked membership is offered no revoking** — taken during task 3.1,
+   because the handoff asks for an empty Change cell and that narrows what an
+   administrator is offered. Revoking a revoked membership is an action with no
+   meaning, and a greyed control would still say it exists and that the caller
+   is the one being refused. 7.3 is unaffected: an administrator may still
+   revoke every membership there is to revoke.
 
 ## 1. The ground
 
@@ -74,7 +80,7 @@ Four came from Camilo, one from a check against the backend.
 
 ## 3. The working screen
 
-- [ ] 3.1 The members table
+- [x] 3.1 The members table
   - The four columns, the status tags, the inline role select per row, and the
     revoked treatment: muted, role select disabled, **Change cell empty**
   - The caller's own row says so
@@ -198,3 +204,31 @@ Findings recorded during implementation belong here.
   cursor is all somebody has to tell a control from a label, so the inert row
   gets no `:hover` rule of its own — the tint on the rows above it is what makes
   its stillness legible.
+- **Requirement 7.2's implementation is reversed, and `frontend-shell/design.md`
+  now says so** rather than being left stating the old reading. The column
+  always exists; what changed is that a withheld address becomes
+  `person_8c41f2` instead of the column disappearing. Before this, a viewer's
+  screen was three rows of roles and statuses about nobody.
+- **The identifier is hashed, not sliced.** Slicing the id was four characters
+  shorter and would have printed `person_caller` for a seeded fixture and a real
+  id's prefix for everybody else. This is legibility, not secrecy — the id is
+  already in the payload the browser received — but an identifier that spells
+  something is one somebody will read as meaning something.
+- **The name is decided per row, not per listing.** The old code asked whether
+  *every* member had an address, which was the reading that could not produce a
+  blank while the column was droppable. With a per-row fallback, `some` and
+  `every` stop mattering: no cell can be empty regardless of what the backend
+  mixes.
+- **The role select lives in the Role column.** It was in Change with the
+  revoking, which made one column mean "the two things you may do" while the
+  Role column stated a value the select restated three pixels away — and it
+  made every row two lines tall.
+- **Three tests kept a request pending with `await delay(30)`, which is a wager
+  rather than a mechanism.** Thirty milliseconds is the entire window in which
+  "Inviting…" exists, and on a machine also running a browser, a database and
+  two dev servers the click, the render and the resolution all landed inside it
+  — twice, in two different tests. They now hold the request open with
+  `held()` in `test/server.ts` and release it when the assertions are done.
+  Testing Library's one-second ceiling for eventual assertions was the same
+  wager one level up, and is now five; nothing in this suite waits on a timer,
+  so the ceiling only ever costs time when something is already broken.

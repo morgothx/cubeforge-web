@@ -1,10 +1,10 @@
-import { delay, http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { AppRoutes } from '../routes/AppRoutes';
 import { SignInScreen } from './SignInScreen';
 import { backend, refusals } from '../../test/handlers';
 import userEvent from '@testing-library/user-event';
 import { fireEvent, renderAt, screen, waitFor } from '../../test/render';
-import { countRequests, server } from '../../test/server';
+import { countRequests, held, server } from '../../test/server';
 import { session } from '../api/session';
 import { SessionProvider } from '../session/SessionProvider';
 
@@ -174,9 +174,10 @@ describe('what the form checks itself', () => {
 
 describe('while an attempt is in flight', () => {
   it('shows that it is waiting and refuses a second submission', async () => {
+    const attempt = held();
     server.use(
       http.post('/api/auth/sign-in', async () => {
-        await delay(30);
+        await attempt.until;
         return HttpResponse.json(backend.session);
       }),
     );
@@ -188,6 +189,7 @@ describe('while an attempt is in flight', () => {
     expect(await screen.findByText(/signing in/i)).toBeInTheDocument();
     submitByKeyboard();
     submitByKeyboard();
+    attempt.release();
     await waitFor(() => {
       expect(session.accessToken()).not.toBeNull();
     });

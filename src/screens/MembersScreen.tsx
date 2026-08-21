@@ -11,17 +11,19 @@ import {
   useRevokeMembership,
 } from '../queries/members';
 import { useStanding } from '../queries/standing';
+import { nameOf } from './member-identity';
 import { ROLES, type Member, type Role } from '../api/types';
 
 /**
  * Who is in this tenant, and what an administrator may change about that.
  *
- * The delicate part of the listing is the address column. The backend **omits**
+ * The delicate part of the listing is the Member column. The backend **omits**
  * a member's address from a caller who may not see it rather than sending an
  * empty one, and that distinction is the whole of requirement 7.2: a column of
  * blanks reads as "these people have no address" or as data that failed to
- * arrive, while no column at all reads as "not for you". Only the second is
- * true, so the column exists or it does not.
+ * arrive. The column itself is not the problem, though — the blank is. So it
+ * always exists and always says something (`member-identity.ts`), because
+ * "which row is this" is a question the listing owes an answer to either way.
  *
  * The delicate part of the actions is that they are **absent** rather than
  * disabled for a role that may not use them (7.4). A disabled control still
@@ -50,7 +52,12 @@ export function MembersScreen() {
         // on (8.4).
         <Waiting what="the members of this tenant" />
       ) : (
-        <Listing tenantId={tenantId} members={members ?? []} role={role} />
+        <Listing
+          tenantId={tenantId}
+          members={members ?? []}
+          role={role}
+          callerPersonId={standing?.personId}
+        />
       )}
     </section>
   );
@@ -60,37 +67,41 @@ function Listing({
   tenantId,
   members,
   role,
+  callerPersonId,
 }: {
   tenantId: string;
   members: readonly Member[];
   role: Role | undefined;
+  callerPersonId: string | undefined;
 }) {
   if (members.length === 0) {
     return <p>This tenant has no members yet.</p>;
   }
 
-  /**
-   * Whether the backend disclosed addresses at all.
-   *
-   * `every` rather than `some`, deliberately. The backend withholds all of them
-   * or none, so the two agree in practice — and where they would not, `some`
-   * produces exactly the blank cell requirement 7.2 is about. Showing none is
-   * the reading that cannot produce one.
-   */
-  const addressesDisclosed = members.every(
-    (member) => member.email !== undefined,
-  );
   const mayChangeRole = role !== undefined && may(role, 'members:change-role');
   const mayRevoke = role !== undefined && may(role, 'members:revoke');
 
   return (
-    <table>
+    <table className="table">
       <thead>
         <tr>
-          {addressesDisclosed && <th scope="col">Member</th>}
-          <th scope="col">Role</th>
-          <th scope="col">Status</th>
-          {(mayChangeRole || mayRevoke) && <th scope="col">Change</th>}
+          <th scope="col">Member</th>
+          <th scope="col" className="column-role">
+            Role
+          </th>
+          <th scope="col" className="column-status">
+            Status
+          </th>
+          {/*
+            7.4: a role that may use neither action is offered no column at
+            all, rather than a column of nothing. A header over empty cells
+            says an action exists and is being withheld from you.
+          */}
+          {(mayChangeRole || mayRevoke) && (
+            <th scope="col" className="column-change">
+              Change
+            </th>
+          )}
         </tr>
       </thead>
       <tbody>
@@ -99,7 +110,7 @@ function Listing({
             key={member.membershipId}
             tenantId={tenantId}
             member={member}
-            showAddress={addressesDisclosed}
+            isCaller={member.personId === callerPersonId}
             mayChangeRole={mayChangeRole}
             mayRevoke={mayRevoke}
           />
@@ -112,19 +123,19 @@ function Listing({
 function MemberRow({
   tenantId,
   member,
-  showAddress,
+  isCaller,
   mayChangeRole,
   mayRevoke,
 }: {
   tenantId: string;
   member: Member;
-  showAddress: boolean;
+  isCaller: boolean;
   mayChangeRole: boolean;
   mayRevoke: boolean;
 }) {
   const changeRole = useChangeMemberRole(tenantId);
   const revoke = useRevokeMembership(tenantId);
-  const who = member.email ?? member.personId;
+  const who = nameOf(member);
 
   /**
    * Whichever of the two was refused, with the way to ask again.
@@ -150,41 +161,80 @@ function MemberRow({
         : undefined;
 
   return (
-    <tr>
-      {showAddress && <td>{member.email}</td>}
-      <td>{member.role}</td>
+    <tr className={member.active ? undefined : 'row-revoked'}>
+      <td>
+        {who}
+        {isCaller && <span className="row-you"> · you</span>}
+      </td>
+      {/*
+        The role a person holds, and — for a caller who may change it — the
+        control that changes it, in the cell that states it. A select in the
+        Change column beside the revoking would have made one column mean "the
+        two things you may do" and left the Role column stating a value twice.
+      */}
+      <td>
+        {mayChangeRole ? (
+          <select
+            className="input"
+            aria-label={`Role of ${who}`}
+            value={member.role}
+            /*
+             * Disabled for a revoked membership — a fact about the row, not
+             * about the caller. It says what the role was and that it cannot
+             * be changed; removing it would leave the row a different shape
+             * from every other one for no reason a reader could see.
+             */
+            disabled={changeRole.isPending || !member.active}
+            onChange={(event) => {
+              changeRole.mutate({
+                membershipId: member.membershipId,
+                role: event.target.value as Role,
+              });
+            }}
+          >
+            {ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        ) : (
+          member.role
+        )}
+      </td>
       {/* 7.1: a revoked membership is part of the answer, and says so. */}
-      <td>{member.active ? 'Active' : 'Revoked'}</td>
+      <td>
+        <span className={member.active ? 'tag tag-accent' : 'tag tag-neutral'}>
+          {member.active ? 'Active' : 'Revoked'}
+        </span>
+      </td>
       {(mayChangeRole || mayRevoke) && (
         <td>
-          {mayChangeRole && (
-            <select
-              aria-label={`Role of ${who}`}
-              value={member.role}
-              disabled={changeRole.isPending}
-              onChange={(event) => {
-                changeRole.mutate({
-                  membershipId: member.membershipId,
-                  role: event.target.value as Role,
-                });
-              }}
-            >
-              {ROLES.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-          )}
-          {mayRevoke && (
+          {/*
+            Absent rather than disabled once the membership is already revoked:
+            the action has no meaning, and a greyed control still says it
+            exists and that you are the one being refused. Same distinction as
+            7.4, applied to an object instead of to a person.
+          */}
+          {mayRevoke && member.active && (
             <button
               type="button"
+              className="btn btn-secondary"
+              /*
+               * Named for the person in the accessible name and not on the
+               * face of the button. The column is one word wide, and a control
+               * that reads "Revoke" in a row is unambiguous to somebody who
+               * can see the row — while somebody hearing the controls one
+               * after another gets four buttons called "Revoke" unless the
+               * name says which.
+               */
+              aria-label={`Revoke ${who}`}
               disabled={revoke.isPending}
               onClick={() => {
                 revoke.mutate({ membershipId: member.membershipId });
               }}
             >
-              Revoke {who}
+              Revoke
             </button>
           )}
           {(changeRole.isPending || revoke.isPending) && <span>Changing…</span>}

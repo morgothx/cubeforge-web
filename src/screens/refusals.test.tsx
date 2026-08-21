@@ -99,7 +99,9 @@ describe('a refusal that names none', () => {
     await openListing();
 
     await user.click(
-      within(screen.getByRole('row', { name: /gone@example.com/ })).getByRole(
+      // An *active* membership: since task 3.1 a revoked one is offered no
+      // revoking at all, so pressing its control would be a test of nothing.
+      within(screen.getByRole('row', { name: /editor@example.com/ })).getByRole(
         'button',
         { name: /revoke/i },
       ),
@@ -122,7 +124,9 @@ describe('a refusal that names none', () => {
     await openListing();
 
     await user.click(
-      within(screen.getByRole('row', { name: /gone@example.com/ })).getByRole(
+      // An *active* membership: since task 3.1 a revoked one is offered no
+      // revoking at all, so pressing its control would be a test of nothing.
+      within(screen.getByRole('row', { name: /editor@example.com/ })).getByRole(
         'button',
         { name: /revoke/i },
       ),

@@ -1,7 +1,20 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { forgetRequests, server } from './server';
+
+/**
+ * How long an eventual assertion waits before it calls the thing a failure.
+ *
+ * The default is one second, which is a wager on how fast the machine is
+ * rather than a statement about the application. Two assertions in this suite
+ * lost that wager on a developer machine that was also running a browser, a
+ * database and two dev servers — and a continuous-integration runner is not
+ * faster. Nothing here waits on a timer; every one of these is waiting for a
+ * render that has already been asked for, so a longer ceiling costs nothing
+ * when the code is right and buys a diagnosis when it is not.
+ */
+configure({ asyncUtilTimeout: 5_000 });
 
 /**
  * `onUnhandledRequest: 'error'` on purpose. A request nobody wrote a handler

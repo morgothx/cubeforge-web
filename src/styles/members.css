@@ -1,0 +1,53 @@
+/*
+ * The members screen.
+ *
+ * The table classes themselves come from the design system (`.table`); what is
+ * here is the column geometry and the two treatments the system has no name
+ * for — the caller's own row, and a membership that has been revoked.
+ */
+
+.column-role {
+  width: 170px;
+}
+
+.column-status,
+.column-change {
+  width: 120px;
+}
+
+/* Said quietly, beside the name. Loud enough to find yourself in the list,
+   quiet enough not to read as a second piece of data about the person. */
+.row-you {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+/*
+ * A revoked membership. Muted rather than struck through or tinted red: it is
+ * an ordinary part of the answer to "who is in this tenant", not a warning.
+ */
+.row-revoked td {
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* The role select inside a row: smaller than a form field, because it is one
+   control among many rather than the thing the screen is about. */
+.table .input {
+  width: 130px;
+  min-height: 32px;
+  font-size: 13px;
+}
+
+.table .btn {
+  font-size: 13px;
+  padding: var(--space-1) var(--space-3);
+}
+
+.table td {
+  vertical-align: middle;
+}

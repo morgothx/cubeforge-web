@@ -36,3 +36,26 @@ export function countRequests(method: string, path: string): number {
 export function forgetRequests(): void {
   seen = [];
 }
+
+/**
+ * A request the test holds open until it says otherwise.
+ *
+ * `await delay(30)` was how the three in-flight tests kept a request pending,
+ * and thirty milliseconds is a wager rather than a mechanism: it is the entire
+ * window in which "Inviting…" exists, and under a loaded machine the click, the
+ * render and the resolution can all land inside it. That flake was watched twice
+ * before it was fixed, both times on a machine also running a browser and a
+ * database.
+ *
+ * Held open explicitly, the window is as long as the assertions need and the
+ * test asserts the same thing it always did.
+ */
+export function held(): { until: Promise<void>; release: () => void } {
+  let release = () => undefined as void;
+  const until = new Promise<void>((resolve) => {
+    release = () => {
+      resolve();
+    };
+  });
+  return { until, release };
+}
