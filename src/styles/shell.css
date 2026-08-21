@@ -145,3 +145,18 @@
   gap: var(--space-6);
   padding: var(--space-8) var(--space-8) calc(var(--space-8) * 1.5);
 }
+
+/*
+ * A named room that is not built. Muted, and with no hover tint of its own —
+ * the absence of the tint is the design saying "this is not a control", and it
+ * is the only thing a mouse has to go on before it is pressed.
+ */
+.panel-row-inert {
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.panel-row-soon {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}

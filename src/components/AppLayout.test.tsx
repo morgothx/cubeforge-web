@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
+import { useLocation } from 'react-router';
 import { backend } from '../../test/handlers';
-import { renderSignedIn, screen, within } from '../../test/render';
+import { fireEvent, renderSignedIn, screen, within } from '../../test/render';
 import { server } from '../../test/server';
 import { session } from '../api/session';
 import type { CallerStanding } from '../api/types';
@@ -16,6 +17,11 @@ import { AppLayout } from './AppLayout';
  * offered to an operator with those offered to everybody else and requires them
  * to be the same set.
  */
+
+/** The address being served, so a test can see that pressing something moved nobody. */
+function Where() {
+  return <p>at {useLocation().pathname}</p>;
+}
 
 function standingOf(overrides: Partial<CallerStanding>) {
   server.use(
@@ -214,5 +220,66 @@ describe('the side panel', () => {
     // "In this tenant" is a heading over an empty promise when there is no
     // tenant to be in. The sections belong to a selection, not to the frame.
     expect(screen.queryByRole('navigation', { name: /section/i })).toBeNull();
+  });
+});
+
+/**
+ * Analytics, marked as a hole rather than hidden (task 2.2).
+ *
+ * The product's whole point is analytics and it does not have them yet. Two
+ * dishonest options were available: leave the panel silent, so somebody
+ * evaluating this reads "a members list" and stops; or draw a chart of invented
+ * numbers. The third is to name the room and say it is not built — which is
+ * only honest if pressing it does nothing at all, because a destination that
+ * greets you with an empty page is the same lie told slower.
+ */
+describe('the analytics section', () => {
+  it('names where the analytics will live', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    await screen.findByText('caller@example.com');
+    const sections = screen.getByRole('navigation', { name: /section/i });
+
+    expect(within(sections).getByText(/analytics/i)).toBeInTheDocument();
+    // And says so in the panel rather than in a tooltip somebody has to find.
+    expect(within(sections).getByText(/soon/i)).toBeInTheDocument();
+  });
+
+  it('offers it as nothing that can be pressed', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    await screen.findByText('caller@example.com');
+    const sections = screen.getByRole('navigation', { name: /section/i });
+    const analytics = within(sections).getByText(/analytics/i);
+
+    // The claim is about what it is *not*, so it is made twice: this element
+    // is not inside a control, and the section list offers exactly one
+    // destination. Either alone passes an implementation the other catches.
+    expect(analytics.closest('a')).toBeNull();
+    expect(analytics.closest('button')).toBeNull();
+    expect(
+      within(sections)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Members']);
+    expect(within(sections).queryAllByRole('button')).toEqual([]);
+  });
+
+  it('sends nobody anywhere when it is pressed anyway', async () => {
+    renderSignedIn(
+      <AppLayout>
+        <Where />
+      </AppLayout>,
+      { at: '/t/t-acme/members' },
+    );
+
+    await screen.findByText('caller@example.com');
+    const analytics = screen.getByText(/analytics/i);
+    fireEvent.click(analytics);
+
+    // Not a redundant test. `closest('a')` proves the markup; this proves the
+    // behaviour, and a handler quietly added to the row would be invisible to
+    // the first and caught here.
+    expect(screen.getByText('at /t/t-acme/members')).toBeInTheDocument();
   });
 });

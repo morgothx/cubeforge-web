@@ -64,7 +64,7 @@ Four came from Camilo, one from a check against the backend.
   - _Design: "Screens / 3. Members — Panel"_
   - _Boundary: App layout, tenant switcher_
 
-- [ ] 2.2 Analytics, marked as a hole rather than hidden
+- [x] 2.2 Analytics, marked as a hole rather than hidden
   - A section entry that names where the analytics will live, carries `SOON`,
     and is **inert**: no href, no handler, no hover
   - Done when it is in the document, is not a link or a button, and adding one
@@ -188,3 +188,13 @@ Findings recorded during implementation belong here.
   what a screen reader follows — so the test asserts brand, then where you are,
   then who you are, by `compareDocumentPosition`. The pinning itself is checked
   in a browser, like every other appearance claim in this feature.
+- **Two tests for the inert row, and neither is redundant.** Turning it into an
+  `<a href>` fails only the markup test — a bare anchor inside `MemoryRouter`
+  does not navigate under `fireEvent.click`, so the behavioural test sees
+  nothing. Giving the `<span>` an `onClick` fails only the behavioural one. Each
+  probe is caught by exactly one of the two, which is the answer to whether the
+  pair earns its keep.
+- **The absence of a hover tint is part of the claim.** Before it is pressed, a
+  cursor is all somebody has to tell a control from a label, so the inert row
+  gets no `:hover` rule of its own — the tint on the rows above it is what makes
+  its stillness legible.

@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react';
+import { BarChart3, Users } from 'lucide-react';
 import { NavLink } from 'react-router';
 
 /**
@@ -11,6 +11,13 @@ import { NavLink } from 'react-router';
  * `NavLink` is what marks the current row rather than a comparison written here
  * — the router already knows which address is being served, and a second answer
  * to that question is a second thing to keep in step.
+ *
+ * Analytics is the product's whole point and it does not exist yet, so it is
+ * named and marked rather than hidden. A panel that stayed silent would let
+ * somebody read this as a members list and stop; a row that could be pressed
+ * would promise a room that is not built. Naming the room and saying it is not
+ * built is only honest while pressing it does nothing at all — which is why it
+ * is a `<span>` and why three tests hold it to that.
  */
 export function SectionNav({ tenantId }: { tenantId: string }) {
   return (
@@ -24,6 +31,15 @@ export function SectionNav({ tenantId }: { tenantId: string }) {
               Members
             </span>
           </NavLink>
+        </li>
+        <li>
+          <span className="panel-row panel-row-inert">
+            <span className="panel-row-name">
+              <BarChart3 size={15} strokeWidth={1.5} aria-hidden />
+              Analytics
+            </span>
+            <span className="tag tag-neutral panel-row-soon">Soon</span>
+          </span>
         </li>
       </ul>
     </nav>
