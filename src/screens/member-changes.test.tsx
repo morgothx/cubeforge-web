@@ -3,6 +3,7 @@ import { delay, http, HttpResponse } from 'msw';
 import { AppRoutes } from '../routes/AppRoutes';
 import { backend } from '../../test/handlers';
 import {
+  findActingIn,
   fireEvent,
   renderSignedIn,
   screen,
@@ -188,7 +189,7 @@ describe('an administrator who demotes themselves', () => {
       }),
     );
     renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
-    await screen.findByText(/as admin/i);
+    expect(await findActingIn('Acme')).toHaveTextContent('admin');
     await screen.findByText('editor@example.com');
 
     fireEvent.change(
@@ -199,7 +200,7 @@ describe('an administrator who demotes themselves', () => {
     // The whole reason standing is a query rather than something remembered at
     // sign-in: the role changed, the credential did not, and the next render
     // is the one that has to notice.
-    expect(await screen.findByText(/as viewer/i)).toBeInTheDocument();
+    expect(await findActingIn(/viewer/)).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: /revoke/i })).toBeNull();
     });

@@ -4,10 +4,15 @@ import type { TenantMembership } from '../api/types';
 /**
  * Which tenant the person is acting in, and how to act in another.
  *
- * The current one is always named (5.2) and is never offered as a destination —
- * going where you already are is not a choice. Somebody who can reach exactly
- * one tenant therefore sees the name and no control at all, which is what 5.1
- * asks for: there is nothing to ask about.
+ * Every membership is a row, and the row you are on is a statement rather than
+ * a link back to itself (5.2) — it carries `aria-current`, which is the same
+ * claim the accent fill makes to somebody who can see it. Somebody who can
+ * reach exactly one tenant therefore sees the name and no destination at all,
+ * which is what 5.1 asks for: there is nothing to ask about.
+ *
+ * The role travels with the name because it changes with it (5.3). A list of
+ * bare tenant names would leave somebody to find out what they may do in each
+ * by trying.
  */
 export function TenantSwitcher({
   memberships,
@@ -16,26 +21,35 @@ export function TenantSwitcher({
   memberships: readonly TenantMembership[];
   selected: TenantMembership;
 }) {
-  const others = memberships.filter(
-    (membership) => membership.tenantId !== selected.tenantId,
-  );
-
   return (
-    <nav aria-label="Tenant">
-      <p>
-        Acting in {selected.tenantName} as {selected.role}
-      </p>
-      {others.length > 0 && (
-        <ul>
-          {others.map((membership) => (
+    <nav className="panel-group" aria-label="Tenant">
+      <h2 className="panel-label">Acting in</h2>
+      <ul className="panel-list panel-list-tenants">
+        {memberships.map((membership) => {
+          const role = (
+            <span className="panel-row-note">{membership.role}</span>
+          );
+
+          return (
             <li key={membership.tenantId}>
-              <Link to={`/t/${membership.tenantId}/members`}>
-                {membership.tenantName}
-              </Link>
+              {membership.tenantId === selected.tenantId ? (
+                <span className="panel-row" aria-current="true">
+                  {membership.tenantName}
+                  {role}
+                </span>
+              ) : (
+                <Link
+                  className="panel-row"
+                  to={`/t/${membership.tenantId}/members`}
+                >
+                  {membership.tenantName}
+                  {role}
+                </Link>
+              )}
             </li>
-          ))}
-        </ul>
-      )}
+          );
+        })}
+      </ul>
     </nav>
   );
 }

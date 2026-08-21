@@ -193,6 +193,9 @@ describe('the route table', () => {
   });
 
   it('serves the addresses that need one, behind the gate', async () => {
+    // Each address is recognised by the *heading* of the screen it serves. The
+    // panel names sections too, so plain text no longer tells a destination
+    // from the navigation that offers it.
     for (const [address, expected] of [
       // The root is a resolution rather than a destination: it lands on a
       // tenant (5.2), which is what the members address renders.
@@ -201,7 +204,9 @@ describe('the route table', () => {
       ['/no-tenants', /belong to no tenants/i],
     ] as const) {
       const view = renderSignedIn(<AppRoutes />, { at: address });
-      expect(await screen.findByText(expected)).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: expected }),
+      ).toBeInTheDocument();
       view.unmount();
       localStorage.clear();
       session.end();

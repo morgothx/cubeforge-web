@@ -112,3 +112,107 @@ describe('the application frame', () => {
     expect(badge.closest('button')).toBeNull();
   });
 });
+
+/**
+ * The side panel (task 2.1).
+ *
+ * The panel is the answer to the complaint that started this repaint: looking
+ * at the old header, it was not clear what the platform *was*. The panel says
+ * it structurally — the tenants are the first-level navigation, and the
+ * sections are what exists inside the one you are in.
+ *
+ * Nothing here can see a colour; jsdom applies no stylesheet. What these tests
+ * hold is the structure the design asks for and the meaning that structure
+ * carries: two separately named navigations, a current row in each, and an
+ * order that puts who-you-are last.
+ */
+describe('the side panel', () => {
+  it('names its two navigations separately', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    await screen.findByText('caller@example.com');
+    // Two lists of destinations that answer different questions — which tenant,
+    // and which section of it. One nav holding both would offer them as if they
+    // were the same kind of choice.
+    expect(
+      screen.getByRole('navigation', { name: /tenant/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: /section/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('marks the tenant being acted in, and does not offer it as a destination', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    await screen.findByText('caller@example.com');
+    const tenants = screen.getByRole('navigation', { name: /tenant/i });
+    const current = tenants.querySelector('[aria-current]');
+
+    expect(current).not.toBeNull();
+    expect(current).toHaveTextContent('Acme');
+    // 5.2 again, now that every membership is a row rather than only the
+    // others: the row you are on is a statement, not a link back to itself.
+    expect(current?.closest('a')).toBeNull();
+    expect(
+      within(tenants)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Globexviewer']);
+  });
+
+  it('marks the section being looked at', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    await screen.findByText('caller@example.com');
+    const sections = screen.getByRole('navigation', { name: /section/i });
+
+    expect(sections.querySelector('[aria-current="page"]')).toHaveTextContent(
+      'Members',
+    );
+  });
+
+  it('says which tenant each membership is held in, and as what', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    await screen.findByText('caller@example.com');
+    const tenants = screen.getByRole('navigation', { name: /tenant/i });
+
+    // The role travels with the tenant, because it changes with it (5.3). A
+    // list of bare names would make somebody guess what they may do in each.
+    expect(tenants).toHaveTextContent('Acme');
+    expect(tenants).toHaveTextContent('admin');
+    expect(tenants).toHaveTextContent('Globex');
+    expect(tenants).toHaveTextContent('viewer');
+  });
+
+  it('reads brand, then where you are, then who you are', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+
+    const identity = await screen.findByText('caller@example.com');
+    const brand = screen.getByText('CUBEFORGE');
+    const tenants = screen.getByRole('navigation', { name: /tenant/i });
+
+    // The design pins the identity to the bottom of the panel with CSS, which
+    // jsdom cannot see. Document order is the part that survives without a
+    // stylesheet — and it is the part a screen reader follows.
+    const follows = (first: Element, second: Element) =>
+      Boolean(
+        first.compareDocumentPosition(second) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    expect(follows(brand, tenants)).toBe(true);
+    expect(follows(tenants, identity)).toBe(true);
+  });
+
+  it('offers no sections where no tenant is selected', async () => {
+    standingOf({ memberships: [] });
+
+    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/no-tenants' });
+
+    await screen.findByText('caller@example.com');
+    // "In this tenant" is a heading over an empty promise when there is no
+    // tenant to be in. The sections belong to a selection, not to the frame.
+    expect(screen.queryByRole('navigation', { name: /section/i })).toBeNull();
+  });
+});

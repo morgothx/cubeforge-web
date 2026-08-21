@@ -169,7 +169,7 @@ describe('the listing belongs to one tenant', () => {
     await screen.findByText('editor@example.com');
 
     within(screen.getByRole('navigation', { name: /tenant/i }))
-      .getByRole('link', { name: 'Globex' })
+      .getByRole('link', { name: /^Globex/ })
       .click();
 
     // Keyed on the tenant, so the answer for one is never shown for the other

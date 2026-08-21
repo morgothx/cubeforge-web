@@ -2,7 +2,13 @@ import { http, HttpResponse } from 'msw';
 import { AppRoutes } from './AppRoutes';
 import { TENANT_STORAGE_KEY, lastTenant } from './last-tenant';
 import { backend } from '../../test/handlers';
-import { renderSignedIn, screen, waitFor, within } from '../../test/render';
+import {
+  findActingIn,
+  renderSignedIn,
+  screen,
+  waitFor,
+  within,
+} from '../../test/render';
 import { server } from '../../test/server';
 import { session } from '../api/session';
 import type { CallerStanding, TenantMembership } from '../api/types';
@@ -32,10 +38,17 @@ function switcher() {
   return screen.getByRole('navigation', { name: /tenant/i });
 }
 
+/**
+ * The tenants offered as destinations, by name.
+ *
+ * A row says the tenant *and* the role held in it, so the name is read from the
+ * node that holds it rather than from the row's whole text — otherwise every
+ * assertion here would also be an assertion about where the role is printed.
+ */
 function tenantsOffered(): string[] {
   return within(switcher())
     .queryAllByRole('link')
-    .map((link) => link.textContent ?? '');
+    .map((link) => link.firstChild?.textContent ?? '');
 }
 
 beforeEach(() => {
@@ -49,7 +62,7 @@ describe('arriving at the root', () => {
 
     renderSignedIn(<AppRoutes />, { at: '/' });
 
-    expect(await screen.findByText(/acting in Acme/i)).toBeInTheDocument();
+    expect(await findActingIn('Acme')).toBeInTheDocument();
     // 5.1: nowhere to go but here, so there is nothing to ask about.
     expect(tenantsOffered()).toEqual([]);
   });
@@ -59,13 +72,13 @@ describe('arriving at the root', () => {
 
     renderSignedIn(<AppRoutes />, { at: '/' });
 
-    expect(await screen.findByText(/acting in Globex/i)).toBeInTheDocument();
+    expect(await findActingIn('Globex')).toBeInTheDocument();
   });
 
   it('falls back when nothing was remembered', async () => {
     renderSignedIn(<AppRoutes />, { at: '/' });
 
-    expect(await screen.findByText(/acting in Acme/i)).toBeInTheDocument();
+    expect(await findActingIn('Acme')).toBeInTheDocument();
   });
 
   it('sends somebody who reaches nowhere to the plain statement', async () => {
@@ -88,7 +101,7 @@ describe('arriving at the root', () => {
     // A membership can be revoked between sessions. The remembered value is a
     // convenience and never an authority — the standing is the authority, and
     // it no longer names this one.
-    expect(await screen.findByText(/acting in Acme/i)).toBeInTheDocument();
+    expect(await findActingIn('Acme')).toBeInTheDocument();
   });
 });
 
@@ -101,13 +114,13 @@ describe('the address as the selection', () => {
     // This is the whole reason the selection lives in the URL. If the
     // remembered value could win here, a reload would move somebody to a
     // different tenant than the one on their screen.
-    expect(await screen.findByText(/acting in Globex/i)).toBeInTheDocument();
+    expect(await findActingIn('Globex')).toBeInTheDocument();
   });
 
   it('records the tenant being acted in as the one last used', async () => {
     renderSignedIn(<AppRoutes />, { at: '/t/t-globex/members' });
 
-    await screen.findByText(/acting in Globex/i);
+    await findActingIn('Globex');
     await waitFor(() => {
       expect(lastTenant()).toBe('t-globex');
     });
@@ -127,7 +140,7 @@ describe('choosing among several', () => {
   it('shows which tenant is selected, and offers the others', async () => {
     renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
 
-    expect(await screen.findByText(/acting in Acme/i)).toBeInTheDocument();
+    expect(await findActingIn('Acme')).toBeInTheDocument();
     // 5.2: the current one is always visible, and it is not offered as a
     // destination — going where you already are is not a choice.
     expect(tenantsOffered()).toEqual(['Globex']);
@@ -135,16 +148,16 @@ describe('choosing among several', () => {
 
   it('changes the tenant, and the role that comes with it', async () => {
     renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
-    await screen.findByText(/acting in Acme/i);
-    expect(screen.getByText(/as admin/i)).toBeInTheDocument();
+    expect(await findActingIn('Acme')).toHaveTextContent('admin');
 
-    within(switcher()).getByRole('link', { name: 'Globex' }).click();
+    within(switcher())
+      .getByRole('link', { name: /^Globex/ })
+      .click();
 
     // 5.3: the role is the caller's role *in the tenant selected*, and it is
     // what every later gate reads. The same person is an administrator in one
     // of these and a viewer in the other.
-    expect(await screen.findByText(/acting in Globex/i)).toBeInTheDocument();
-    expect(screen.getByText(/as viewer/i)).toBeInTheDocument();
+    expect(await findActingIn('Globex')).toHaveTextContent('viewer');
   });
 
   it('offers no switcher to somebody who belongs nowhere', async () => {

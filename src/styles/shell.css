@@ -1,0 +1,147 @@
+/*
+ * The shell: the side panel and the column it frames.
+ *
+ * These are this product's own classes, not the design system's. The handoff
+ * expressed the panel as inline styles on a prototype; here it becomes a small
+ * set of names, so a component says *what a thing is* and this sheet says what
+ * that looks like. Every value is a token — the design's rule that no raw
+ * number appears off the spacing scale is the reason a repaint stays a repaint.
+ */
+
+.shell {
+  display: grid;
+  grid-template-columns: 262px 1fr;
+  min-height: 100vh;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-4) var(--space-6);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-divider);
+}
+
+.panel-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
+
+.panel-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* "Acting in", "In this tenant" — the label that says what the list below is
+   a list of. Small and quiet on purpose: it is a caption, not a heading. */
+.panel-label {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.panel-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.panel-row-note {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* The tenant list. Rows share edges — `border-top: 0` on every row after the
+   first — so the stack reads as one object rather than as separate buttons. */
+.panel-list-tenants .panel-row {
+  border: 1px solid var(--color-divider);
+}
+
+.panel-list-tenants .panel-row + .panel-row,
+.panel-list-tenants li + li .panel-row {
+  border-top: 0;
+}
+
+.panel-list-tenants a.panel-row:hover {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+/* The loudest thing in the panel, deliberately: which tenant you are acting in
+   is the fact every other thing on the screen depends on. */
+.panel-list-tenants [aria-current] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.panel-list-tenants [aria-current] .panel-row-note {
+  opacity: 0.8;
+}
+
+.panel-list-sections {
+  gap: var(--space-1);
+}
+
+.panel-list-sections [aria-current] {
+  background: var(--color-accent-100);
+  color: var(--color-accent-700);
+}
+
+.panel-list-sections a.panel-row:hover:not([aria-current]) {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+.panel-row-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Pinned to the bottom: who you are is the last thing you need and the first
+   thing you look for when you want to leave. */
+.panel-identity {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+}
+
+.panel-identity-address {
+  font-size: 13px;
+  word-break: break-all;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.shell-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--space-8) calc(var(--space-8) * 1.5);
+}

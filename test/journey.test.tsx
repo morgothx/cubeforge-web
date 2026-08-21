@@ -5,7 +5,7 @@ import { SessionProvider } from '../src/session/SessionProvider';
 import { session } from '../src/api/session';
 import { REFRESH_STORAGE_KEY } from '../src/api/session';
 import type { Member, Role } from '../src/api/types';
-import { renderAt, screen, waitFor, within } from './render';
+import { findActingIn, renderAt, screen, waitFor, within } from './render';
 import { server } from './server';
 
 /**
@@ -127,9 +127,7 @@ describe('the whole journey', () => {
     // not read: the frame appears with the standing, and the tenant appears in
     // it only once the root has resolved into one.
     expect(await screen.findByText('caller@example.com')).toBeInTheDocument();
-    expect(
-      await screen.findByText(/acting in Acme as admin/i),
-    ).toBeInTheDocument();
+    expect(await findActingIn('Acme')).toHaveTextContent('admin');
     expect(await screen.findByText('editor@example.com')).toBeInTheDocument();
 
     await user.click(
@@ -169,7 +167,7 @@ describe('a role changed between two asks', () => {
       'viewer',
     );
 
-    expect(await screen.findByText(/acting in Acme as viewer/i)).toBeTruthy();
+    expect(await findActingIn(/viewer/)).toBeTruthy();
     // The whole reason standing is a query. Had the role travelled inside the
     // token, seeing this would have required a new one — and the application
     // would have had to sign somebody out to tell them their own role.

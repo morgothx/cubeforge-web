@@ -1,5 +1,10 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
-import { render, type RenderResult } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react';
 import { StrictMode, type ReactElement } from 'react';
 import { MemoryRouter } from 'react-router';
 import { REFRESH_STORAGE_KEY } from '../src/api/session';
@@ -69,4 +74,32 @@ export function renderSignedIn(
       { at: options.at, state: options.state, client },
     ),
   };
+}
+
+/**
+ * The tenant the frame says is being acted in.
+ *
+ * Since task 2.1 that claim is made by the panel row carrying `aria-current` —
+ * the same claim the accent fill makes to somebody who can see it — rather than
+ * by a sentence. Tests ask through here so the next repaint has one place to
+ * change instead of a dozen regular expressions matching prose.
+ *
+ * Queried by attribute deliberately: `aria-current` *is* the assertion, and a
+ * row that lost it would still hold the right text.
+ */
+export function actingIn(): HTMLElement | null {
+  const tenants = screen.queryByRole('navigation', { name: /tenant/i });
+  return tenants?.querySelector<HTMLElement>('[aria-current]') ?? null;
+}
+
+/** The same, awaited — the panel arrives with the standing, not with the page. */
+export async function findActingIn(
+  tenant: string | RegExp,
+): Promise<HTMLElement> {
+  return waitFor(() => {
+    const current = actingIn();
+    if (current === null) throw new Error('no tenant is marked as current');
+    expect(current).toHaveTextContent(tenant);
+    return current;
+  });
 }

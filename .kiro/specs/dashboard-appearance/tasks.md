@@ -52,7 +52,7 @@ Four came from Camilo, one from a check against the backend.
 
 ## 2. The shell
 
-- [ ] 2.1 The side panel
+- [x] 2.1 The side panel
   - `AppLayout` becomes a two-column grid with a fixed 262px panel and no header
   - Brand, the tenant list, the section list and the identity block, in that
     order, with the identity block pinned to the bottom
@@ -167,3 +167,24 @@ Findings recorded during implementation belong here.
   gate for appearance is the build plus a real browser. What the suite asserts
   is the structure the handoff asks for — same names, re-tuned, with an explicit
   choice that outranks the system preference — and that is all it claims to.
+- **The panel replaces a sentence with a structure, and tests followed the
+  sentence.** Thirteen assertions across five files awaited the frame by
+  matching `/acting in Acme as admin/`. The claim they were making — *this is
+  the tenant being acted in* — survives the repaint; the prose does not. They
+  now ask `findActingIn` in `test/render.tsx`, which reads the row carrying
+  `aria-current`. Querying by attribute is the point rather than a shortcut: a
+  row that lost `aria-current` would still hold the right text, and the panel's
+  accent fill makes exactly this claim to somebody who can see it.
+- **`NavLink` marks the current section, not a comparison written here.** The
+  router already knows which address it is serving; deciding it a second time in
+  the panel would be a second answer to keep in step with the first.
+- **A section list is a list of what is in a tenant.** Where no tenant is
+  selected — somebody who belongs nowhere, or an address naming a tenant they
+  cannot reach — the sections are absent rather than empty, on the same footing
+  as the switcher. "In this tenant" over nothing is a heading for a promise the
+  frame cannot keep.
+- **The identity block is pinned with `margin-top: auto`, which jsdom cannot
+  see.** What survives without a stylesheet is document order, and it is also
+  what a screen reader follows — so the test asserts brand, then where you are,
+  then who you are, by `compareDocumentPosition`. The pinning itself is checked
+  in a browser, like every other appearance claim in this feature.
