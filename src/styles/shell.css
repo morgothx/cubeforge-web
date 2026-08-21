@@ -160,3 +160,34 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
+
+/*
+ * A screen inside the content column: its title block, then whatever it is
+ * about. The gap is the design's "between blocks" step, so two screens with
+ * different contents still breathe the same way.
+ */
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.screen-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.screen-title h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+/* The sentence that says what the reader may do here. Quiet, and directly
+   under the title, because it is read once and then stops mattering. */
+.screen-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  max-width: 70ch;
+}

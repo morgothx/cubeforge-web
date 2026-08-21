@@ -95,7 +95,7 @@ Four came from Camilo, one from a check against the backend.
   - _Note: this is where requirement 7.2's implementation changes; update its
     entry in `frontend-shell/design.md` rather than leaving the old reading._
 
-- [ ] 3.2 The invite card, and the screen's own words
+- [x] 3.2 The invite card, and the screen's own words
   - The blueprint card, the field row, and the heading line that states the
     caller's role **in words** — the sentence that tells somebody what they may
     do here, which is the whole reason this repaint exists
@@ -232,3 +232,21 @@ Findings recorded during implementation belong here.
   Testing Library's one-second ceiling for eventual assertions was the same
   wager one level up, and is now five; nothing in this suite waits on a timer,
   so the ceiling only ever costs time when something is already broken.
+- **The sentence is derived from `may`, never written out per role.** A
+  hand-written line beside a control is a second authorization model: quieter
+  than the first, answerable to nobody, and wrong the day a permission moves.
+  The tests assert the *derivation* rather than the prose — the words may be
+  rewritten freely and may not come to disagree with the table — and a probe
+  that hard-codes the administrator's sentence fails four of them.
+- **The blamed notice moved out from between the two fields.** "Beside the
+  field the backend blamed" is carried by `aria-describedby`, which is what
+  actually reaches somebody using a screen reader; rendering the notice
+  physically between the email field and the role field bought them nothing and
+  pushed the row apart for everybody else. It now sits under the row, as the
+  handoff draws it, and the input still names it. A probe removing
+  `aria-describedby` fails, so the tie is the assertion rather than the
+  placement.
+- **The title block waits for the standing.** A line naming a role before the
+  backend has said which would be a guess, and the guess would be about what
+  the reader is allowed to do — the one subject on this screen where being
+  briefly wrong is worst.

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router';
 import { may } from '../access/permissions';
 import { fieldBlamed } from '../api/refusal';
+import { Corners } from '../components/Corners';
 import { RefusalNotice } from '../components/RefusalNotice';
 import { Waiting } from '../components/Waiting';
 import {
@@ -12,6 +13,7 @@ import {
 } from '../queries/members';
 import { useStanding } from '../queries/standing';
 import { nameOf } from './member-identity';
+import { whatYouMayDo } from './members-wording';
 import { ROLES, type Member, type Role } from '../api/types';
 
 /**
@@ -36,13 +38,32 @@ export function MembersScreen() {
   const { data: members, isPending } = useMembers(tenantId);
   const { data: standing } = useStanding();
 
-  const role = standing?.memberships.find(
-    (membership) => membership.tenantId === tenantId,
-  )?.role;
+  const membership = standing?.memberships.find(
+    (found) => found.tenantId === tenantId,
+  );
+  const role = membership?.role;
 
   return (
-    <section>
-      <h1>Members</h1>
+    <section className="screen">
+      <div className="screen-title">
+        <h1>Members</h1>
+        {/*
+          Said before anything is asked of the person, and said in words rather
+          than by which controls happen to be on screen. Somebody who cannot
+          invite should learn that from a sentence, not by looking for a button
+          and failing to find one.
+
+          Rendered only once the standing has arrived: a line that named a role
+          before the backend said which would be a guess, and the guess would be
+          about what the reader is allowed to do.
+        */}
+        {membership !== undefined && role !== undefined && (
+          <p className="screen-subtitle">
+            Everyone with access to {membership.tenantName}.{' '}
+            {whatYouMayDo(role)}
+          </p>
+        )}
+      </div>
       {role !== undefined && may(role, 'members:invite') && (
         <InviteForm tenantId={tenantId} />
       )}
@@ -285,42 +306,70 @@ function InviteForm({ tenantId }: { tenantId: string }) {
   }
 
   return (
-    <form aria-label="Invite a member" onSubmit={send}>
-      <label htmlFor="invite-email">Invite by email address</label>
-      <input
-        id="invite-email"
-        type="email"
-        value={email}
-        aria-describedby={
-          blamed === 'email' ? 'invite-email-refused' : undefined
-        }
-        onChange={(event) => {
-          setEmail(event.target.value);
-        }}
-      />
+    <form
+      aria-label="Invite a member"
+      className="blueprint card invite"
+      onSubmit={send}
+    >
+      <Corners />
+      <div className="invite-row">
+        <div className="field invite-email">
+          <label htmlFor="invite-email">Invite by email address</label>
+          <input
+            id="invite-email"
+            className="input"
+            type="email"
+            value={email}
+            aria-describedby={
+              blamed === 'email' ? 'invite-email-refused' : undefined
+            }
+            onChange={(event) => {
+              setEmail(event.target.value);
+            }}
+          />
+        </div>
+
+        <div className="field invite-role">
+          <label htmlFor="invite-role">Role for the new member</label>
+          <select
+            id="invite-role"
+            className="input"
+            value={role}
+            onChange={(event) => {
+              setRole(event.target.value as Role);
+            }}
+          >
+            {ROLES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={invite.isPending}
+        >
+          Invite
+        </button>
+      </div>
+
+      {invite.isPending && <p className="invite-pending">Inviting…</p>}
+
+      {/*
+        Under the row rather than between the two fields.
+
+        The tie to the input is `aria-describedby`, which is what actually
+        reaches somebody using a screen reader; putting the notice physically
+        between the email field and the role field bought nothing for them and
+        pushed the row apart for everybody else. What "beside the field the
+        backend blamed" means is that the input names it, and it still does.
+      */}
       {blamed === 'email' && refusal !== undefined && (
         <RefusalNotice refusal={refusal} id="invite-email-refused" />
       )}
-
-      <label htmlFor="invite-role">Role for the new member</label>
-      <select
-        id="invite-role"
-        value={role}
-        onChange={(event) => {
-          setRole(event.target.value as Role);
-        }}
-      >
-        {ROLES.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-
-      <button type="submit" disabled={invite.isPending}>
-        Invite
-      </button>
-      {invite.isPending && <p>Inviting…</p>}
       {refusal !== undefined && blamed === null && (
         <RefusalNotice
           refusal={refusal}

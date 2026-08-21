@@ -209,3 +209,61 @@ describe('the listing belongs to one tenant', () => {
     expect(countRequests('GET', '/api/tenants/t-acme/members')).toBe(1);
   });
 });
+
+/**
+ * The screen's own words (task 3.2).
+ *
+ * The complaint that started this repaint was that the old screen did not say
+ * what the product was, still less what the person looking at it could do. A
+ * role name in a corner does not answer that — "viewer" is a label. The
+ * sentence is the same fact in a form somebody can act on, and because it is
+ * derived from `may` it cannot promise what the screen does not mount.
+ */
+describe('what the screen says about the person reading it', () => {
+  it('names the tenant they are in and what their role lets them do', async () => {
+    callerIsA('admin');
+
+    renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
+
+    await screen.findByRole('table');
+    expect(screen.getByText(/everyone with access to Acme/i)).toBeVisible();
+    expect(
+      screen.getByText(/you are admin here.*invite people/i),
+    ).toBeVisible();
+  });
+
+  it('says something else to somebody who may only look', async () => {
+    callerIsA('viewer');
+
+    renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
+
+    await screen.findByRole('table');
+    expect(
+      screen.getByText(/you are viewer here.*not change it/i),
+    ).toBeVisible();
+    // And the sentence and the screen agree: no promise, no form.
+    expect(screen.queryByRole('form', { name: /invite/i })).toBeNull();
+  });
+
+  it('follows the caller into the tenant they switch to', async () => {
+    callerIsA('admin');
+
+    // The caller is an administrator of Acme and a viewer of Globex, which is
+    // the whole point: the sentence is about the tenant they are *in*, and a
+    // sentence read once at sign-in would keep telling somebody they may
+    // invite people into a tenant where they may not.
+    renderSignedIn(<AppRoutes />, { at: '/t/t-acme/members' });
+    expect(
+      await screen.findByText(/you are admin here.*invite people/i),
+    ).toBeVisible();
+
+    within(screen.getByRole('navigation', { name: /tenant/i }))
+      .getByRole('link', { name: /^Globex/ })
+      .click();
+
+    expect(
+      await screen.findByText(/you are viewer here.*not change it/i),
+    ).toBeVisible();
+    expect(screen.getByText(/everyone with access to Globex/i)).toBeVisible();
+  });
+});
