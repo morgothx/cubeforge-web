@@ -42,7 +42,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
       {standing !== undefined && (
         <header className="flex flex-col gap-8 border-r border-divider bg-base-200 p-4 pb-6">
           <Brand />
-          {selected !== undefined && (
+          {/*
+            Offered wherever there is a tenant to reach, not only where one is
+            selected. An address that names none — a mistyped one — is exactly
+            where somebody needs the way out most (task 5.1).
+          */}
+          {standing.memberships.length > 0 && (
             <TenantSwitcher
               memberships={standing.memberships}
               selected={selected}

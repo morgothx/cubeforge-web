@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, type Refusal } from '../api/refusal';
+import { Card } from '../components/Card';
 import { RefusalNotice } from '../components/RefusalNotice';
 import { useSession } from '../session/useSession';
 
@@ -58,8 +59,10 @@ export function SignInScreen() {
   }
 
   return (
-    <section>
-      <h1>Sign in</h1>
+    <Card title="Sign in" alone width="w-[400px]">
+      <p className="text-meta opacity-55">
+        Use the account your administrator invited.
+      </p>
       {/*
         `noValidate`, with `type="email"` kept.
         The type is worth having: it is what gives a phone the right keyboard
@@ -72,39 +75,58 @@ export function SignInScreen() {
       <form
         aria-label="Sign in"
         noValidate
+        className="flex flex-col gap-4"
         onSubmit={(event) => void attempt(event)}
       >
-        <label htmlFor="email">Email address</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-          }}
-        />
+        <div className="flex flex-col gap-1">
+          <label htmlFor="email" className="text-label opacity-55">
+            Email address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            className="input w-full"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+            }}
+          />
+        </div>
 
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={(event) => {
-            setPassword(event.target.value);
-          }}
-        />
+        <div className="flex flex-col gap-1">
+          <label htmlFor="password" className="text-label opacity-55">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            className="input w-full"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+            }}
+          />
+        </div>
 
-        {objection !== null && <p>{objection}</p>}
+        {objection !== null && (
+          <p className="text-meta opacity-55">{objection}</p>
+        )}
         {refusal !== null && <SignInRefusal refusal={refusal} />}
 
-        <button type="submit" disabled={attempting}>
+        <button
+          type="submit"
+          className="btn btn-primary w-full"
+          disabled={attempting}
+        >
           Sign in
         </button>
-        {attempting && <p>Signing in…</p>}
+        {attempting && <p className="text-meta opacity-55">Signing in…</p>}
       </form>
-    </section>
+    </Card>
   );
 }
 
@@ -127,5 +149,9 @@ function SignInRefusal({ refusal }: { refusal: Refusal }) {
   if (refusal.kind === 'throttled' || refusal.kind === 'unreachable') {
     return <RefusalNotice refusal={refusal} />;
   }
-  return <p role="alert">That email address and password did not match.</p>;
+  return (
+    <p role="alert" className="border border-divider px-3 py-2 text-meta">
+      Those details were not accepted.
+    </p>
+  );
 }

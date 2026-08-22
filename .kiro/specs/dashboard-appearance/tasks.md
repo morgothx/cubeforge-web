@@ -136,7 +136,7 @@ Four came from Camilo, one from a check against the backend.
 
 ## 5. The three cards
 
-- [ ] 5.1 Sign in, no tenants, not available
+- [x] 5.1 Sign in, no tenants, not available
   - One centred blueprint card, three sets of words and three sets of real exits
   - "Not available" is reached with and without a session: with the shell when
     there is one, and as a card alone when there is not — "Back to Members"
@@ -339,3 +339,43 @@ Findings recorded during implementation belong here.
   handoff is contrast-aware elsewhere (it moves paragraph accent text to 700 for
   exactly this reason) so this reads as an oversight rather than a choice, but
   changing it means changing the accent. Left as designed and flagged.
+
+## Task 5.1
+
+- **"Alone on the page" and "carries the brand" turned out to be one flag.** A
+  card with no panel beside it has nothing else to give the page height *and*
+  nothing else to say what the product is. Two props were one concept, and
+  keeping them apart would have let a card be branded and squashed, or framed
+  and doubly branded.
+- **The panel now renders wherever there is a tenant to reach**, not only where
+  one is selected. An address that names no tenant is exactly where somebody
+  needs the way out most, and the frame was drawing itself empty there — a
+  mistyped address turned into a wall. Nothing is marked current, which is
+  accurate: no tenant is being acted in.
+- **The handoff's second button on "not available" is not an exit.** It draws
+  "Back to Members" and "Switch tenant" side by side; beside a panel that lists
+  every tenant, a control meaning "look to your left" is furniture. The exit
+  that *does* change with who arrived is the one the handoff's own rule points
+  at — "Back to Members" names a room somebody who has not signed in has never
+  been in, so signed out the card offers the door in instead.
+- **A probe passed because the thing it broke was invisible for another
+  reason.** Wrapping the signed-out route in the frame changed nothing any
+  assertion could see: signed out, the standing query never runs, so the panel
+  never appears whether the frame is mounted or not. The absence was luck, not
+  evidence. The test now asserts the `main` landmark the frame *always*
+  renders, and the probe fails. Fourth instance in this feature of the same
+  lesson, and the first where the probe was defeated by a second mechanism
+  rather than by the test's own wording.
+- **`width={400}` tripped the status-code scan, correctly.** A bare `400` in a
+  file above the request layer is what that scan is for, and an exception for
+  this one would be an exception for the next one. The width is a class now,
+  which also gets an inline style off the token path.
+- **A new scan: every exit leads somewhere the table serves.** These three
+  screens exist to offer a way onward, so one of them pointing at an
+  unserved address would be the same dead end wearing an apology. Paired with an
+  assertion that it found some links at all — without it the check passes for an
+  application with no links, which is exactly what a regression produces.
+- **Not checked in a browser: "no tenants".** Every seeded account holds a
+  membership, so the screen cannot be reached without editing the database. It
+  is covered by tests and by the shared `Card`; the appearance claim rests on
+  the other two cards rendering correctly.

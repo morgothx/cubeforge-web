@@ -96,8 +96,13 @@ describe('signing in', () => {
     await submit();
 
     const said = await screen.findByRole('alert');
-    expect(said).toHaveTextContent(/did not match/i);
+    // The claim, not the sentence: whatever it says, it says it about the
+    // attempt and never about one half of it. The words are the handoff's —
+    // "Those details were not accepted" is more neutral still than "did not
+    // match", which quietly implies both halves were checked together.
+    expect(said.textContent ?? '').not.toBe('');
     expect(said.textContent ?? '').not.toMatch(TELLS);
+    expect(said.textContent ?? '').not.toMatch(/email|password|address/i);
   });
 
   it('reports too many attempts as its own thing', async () => {

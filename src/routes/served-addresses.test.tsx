@@ -90,3 +90,47 @@ describe('the areas this feature excluded', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('every exit this feature offers', () => {
+  /**
+   * Each destination written anywhere in the application, as a route pattern.
+   *
+   * `to="/sign-in"` and `` to={`/t/${id}/members`} `` are the two shapes in
+   * use; the second is normalised back to the pattern it fills, because what is
+   * being checked is that the *address* exists and not that a particular tenant
+   * does.
+   */
+  function destinations(): { path: string; where: string }[] {
+    return Object.entries(sources)
+      .filter(([path]) => !/\.test\.tsx?$/.test(path))
+      .flatMap(([where, source]) =>
+        [...code(source ?? '').matchAll(/\bto=(?:"([^"]*)"|\{`([^`]*)`\})/g)]
+          .map((match) => match[1] ?? match[2] ?? '')
+          .map((path) => ({
+            path: path.replace(/\$\{[^}]*\}/g, ':param'),
+            where,
+          })),
+      );
+  }
+
+  it('leads somewhere this feature serves', () => {
+    // A dead link is the failure this whole family of screens exists to
+    // prevent: "no tenants", "not available" and "that tenant is gone" are all
+    // screens whose entire job is to offer a way onward, and one of them
+    // pointing at an address the table does not serve would be the same
+    // dead end wearing an apology.
+    const patterns = SERVED.filter((served) => served !== '*').map((served) =>
+      served.replace(/:[^/]+/g, ':param'),
+    );
+
+    const dead = destinations().filter(({ path }) => !patterns.includes(path));
+
+    expect(dead).toEqual([]);
+  });
+
+  it('finds some, so the check is checking something', () => {
+    // Without this the assertion above passes for an application with no links
+    // at all, which is exactly the state a regression would produce.
+    expect(destinations().length).toBeGreaterThan(3);
+  });
+});

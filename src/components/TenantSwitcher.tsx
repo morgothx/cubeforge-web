@@ -14,6 +14,12 @@ import type { TenantMembership } from '../api/types';
  * bare tenant names would leave somebody to find out what they may do in each
  * by trying.
  *
+ * `selected` is optional because an address can name no tenant at all — one
+ * that does not exist, most often. Nothing is current then and every tenant is
+ * a destination, which is accurate: the panel is the way out of a wrong turn,
+ * and a frame with no navigation in it is what makes a mistyped address feel
+ * like a wall.
+ *
  * The rows share edges — `border-t-0` on every one after the first — so the
  * stack reads as one object rather than as separate buttons.
  */
@@ -25,7 +31,7 @@ export function TenantSwitcher({
   selected,
 }: {
   memberships: readonly TenantMembership[];
-  selected: TenantMembership;
+  selected?: TenantMembership | undefined;
 }) {
   return (
     <nav className="flex flex-col gap-2" aria-label="Tenant">
@@ -34,7 +40,7 @@ export function TenantSwitcher({
       </h2>
       <ul className="flex flex-col">
         {memberships.map((membership) => {
-          const current = membership.tenantId === selected.tenantId;
+          const current = membership.tenantId === selected?.tenantId;
 
           return (
             <li key={membership.tenantId}>

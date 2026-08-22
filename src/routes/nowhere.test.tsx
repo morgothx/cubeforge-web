@@ -1,8 +1,15 @@
 import { http, HttpResponse } from 'msw';
 import { AppRoutes } from './AppRoutes';
 import { backend } from '../../test/handlers';
-import { renderAt, renderSignedIn, screen, within } from '../../test/render';
-import { server } from '../../test/server';
+import {
+  fireEvent,
+  renderAt,
+  renderSignedIn,
+  screen,
+  waitFor,
+  within,
+} from '../../test/render';
+import { countRequests, server } from '../../test/server';
 import { session } from '../api/session';
 import { SessionProvider } from '../session/SessionProvider';
 import type { CallerStanding, TenantMembership } from '../api/types';
@@ -87,13 +94,26 @@ describe('a tenant the caller can no longer reach', () => {
 });
 
 describe('an address that does not exist', () => {
-  it('says it is not available and offers somewhere reachable', async () => {
+  it('says it is not available, inside the frame, to somebody signed in', async () => {
     renderSignedIn(<AppRoutes />, { at: '/somewhere-invented' });
 
     expect(await screen.findByText(/not available/i)).toBeInTheDocument();
-    // One destination serves both cases: signed in it resolves to a tenant,
-    // signed out the gate turns it into the form.
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/');
+    // Task 5.1: the panel is still there, and it still lists the tenants.
+    // Somebody who mistyped an address has not left the application, and
+    // taking the navigation away to tell them so makes a wrong turn look like
+    // a wall. Awaited, because the panel arrives with the standing while the
+    // card does not wait for anything.
+    const tenants = await screen.findByRole('navigation', { name: /tenant/i });
+    expect(
+      within(tenants)
+        .getAllByRole('link')
+        .map((link) => link.firstChild?.textContent),
+    ).toEqual(['Acme', 'Globex']);
+    // Nothing is current, because the address names no tenant.
+    expect(tenants.querySelector('[aria-current]')).toBeNull();
+    expect(
+      screen.getByRole('link', { name: /back to members/i }),
+    ).toHaveAttribute('href', '/');
   });
 
   it('says the same to somebody with no session', async () => {
@@ -111,6 +131,36 @@ describe('an address that does not exist', () => {
     expect(await screen.findByText(/not available/i)).toBeInTheDocument();
   });
 
+  it('offers a signed-out visitor no frame and no dashboard', async () => {
+    renderAt(
+      <SessionProvider>
+        <AppRoutes />
+      </SessionProvider>,
+      { at: '/somewhere-invented' },
+    );
+
+    await screen.findByText(/not available/i);
+    // Nothing to frame: there is no standing, no tenant and no identity, and a
+    // panel drawn around those would be a panel of empty slots.
+    //
+    // Asserted on the `main` landmark, which the frame always renders, rather
+    // than on the panel, which it renders only once the standing arrives. The
+    // panel's absence is not evidence: a probe that wrapped this route in the
+    // frame regardless of the session passed every other assertion here,
+    // because signed out the standing query never runs and the panel never
+    // appears anyway. Absent for the right reason, or it is absent by luck.
+    expect(screen.queryByRole('main')).toBeNull();
+    expect(screen.queryByRole('banner')).toBeNull();
+    expect(screen.queryByRole('button', { name: /sign out/i })).toBeNull();
+    // "Back to Members" names a room this person has never been in. The one
+    // real exit is the door in.
+    expect(screen.queryByText(/back to members/i)).toBeNull();
+    expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute(
+      'href',
+      '/sign-in',
+    );
+  });
+
   it('reads as an answer rather than as a breakage', async () => {
     renderSignedIn(<AppRoutes />, { at: '/somewhere-invented' });
 
@@ -120,6 +170,25 @@ describe('an address that does not exist', () => {
 });
 
 describe('a person who belongs nowhere', () => {
+  it('offers asking again, and asks again', async () => {
+    standingOf([]);
+
+    renderSignedIn(<AppRoutes />, { at: '/no-tenants' });
+
+    await screen.findByText(/belong to no tenants/i);
+    expect(countRequests('GET', '/api/me')).toBe(1);
+
+    fireEvent.click(screen.getByRole('button', { name: /check again/i }));
+
+    // The only affordance the product can honestly offer here. There is no
+    // "create a tenant" because the product does not do that, and a button
+    // that re-reads the standing is the one thing that can change this screen
+    // — somebody has been added while they were looking at it.
+    await waitFor(() => {
+      expect(countRequests('GET', '/api/me')).toBe(2);
+    });
+  });
+
   it('says so plainly and offers signing out', async () => {
     standingOf([]);
 

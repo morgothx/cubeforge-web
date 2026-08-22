@@ -8,6 +8,7 @@ import { NotAvailableScreen } from '../screens/NotAvailableScreen';
 import { TenantRoute } from './TenantRoute';
 import { lastTenant } from './last-tenant';
 import { RequireSession, ReturnAfterSignIn } from './RequireSession';
+import { useSession } from '../session/useSession';
 
 /**
  * Every address this feature serves, in one place.
@@ -49,8 +50,33 @@ export function AppRoutes() {
         reason to ask somebody for a password, and telling them so costs
         nothing that a session would protect (6.2).
       */}
-      <Route path="*" element={<NotAvailableScreen />} />
+      <Route path="*" element={<Nowhere />} />
     </Routes>
+  );
+}
+
+/**
+ * An address that does not exist, framed or not depending on who reached it.
+ *
+ * Outside the gate, so it is served to anybody — but a person with a session
+ * has not left the application by mistyping, and taking the panel away to tell
+ * them so turns a wrong turn into a wall. A person without one has no standing,
+ * no tenant and no identity, so the frame would be a panel of empty slots.
+ *
+ * While the session is still being restored this renders nothing, for the same
+ * reason the gate does: the application does not yet know which of the two it
+ * owes them, and guessing means the card is drawn twice in two shapes.
+ */
+function Nowhere() {
+  const { status } = useSession();
+
+  if (status.state === 'restoring') return null;
+  if (status.state !== 'signed-in') return <NotAvailableScreen />;
+
+  return (
+    <AppLayout>
+      <NotAvailableScreen />
+    </AppLayout>
   );
 }
 
