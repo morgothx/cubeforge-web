@@ -149,7 +149,7 @@ Four came from Camilo, one from a check against the backend.
 
 ## 6. Both themes
 
-- [ ] 6.1 A theme somebody chose, remembered
+- [x] 6.1 A theme somebody chose, remembered
   - A control that switches, a preference that survives a reload, and the
     system's preference as the default before anybody has chosen
   - Done when the choice outlives a reload, an unset preference follows the
@@ -379,3 +379,38 @@ Findings recorded during implementation belong here.
   membership, so the screen cannot be reached without editing the database. It
   is covered by tests and by the shared `Card`; the appearance claim rests on
   the other two cards rendering correctly.
+
+## Task 6.1
+
+- **Three states behind a two-way control.** *Nothing chosen* is not a synonym
+  for light: somebody who has expressed no preference follows their system and
+  keeps following it at dusk, and somebody who has chosen is obeyed even when
+  their system disagrees. The absent attribute is the answer rather than a
+  fallback — both palettes are declared under `:root:not([data-theme])` inside
+  the media query — so writing the system's current value on first load would
+  quietly convert everybody into the second group, with nothing on screen to
+  show it. A probe that does exactly that fails.
+- **Not daisyUI's `theme-controller`.** It flips the theme in pure CSS from a
+  checked input, which works and forgets; the choice has to outlive a reload, so
+  the attribute is written by `chooseTheme`. Two mechanisms writing one
+  attribute is one too many.
+- **`:root:not([data-theme])` now matches daisyUI exactly.** The steel ramp's
+  media block excluded only `[data-theme='cubeforge']` while daisyUI's excludes
+  any `data-theme`. Same behaviour today, two spellings of one intent, and that
+  is how they drift.
+- **The theme broke seventy tests while its own file passed.** jsdom does not
+  implement `matchMedia`, so `systemTheme()` threw, React rendered nothing, and
+  every rendered test in the suite failed with an empty document — except the
+  theme's own, which stubs `matchMedia` itself. **A test that stubs a global
+  proves the component works given the stub; only the rest of the suite proves
+  the global exists.** Stubbed in `test/setup.ts` rather than guarded in the
+  application: the environment is the deficient one, and code written to survive
+  a missing browser API cannot be read as describing a browser.
+- **The focus ring is drawn on the label.** `sr-only` keeps the radio focusable,
+  which is the point, but without this a keyboard user moves an invisible cursor
+  through an invisible control.
+- **No toggle on the signed-out screens.** They have no panel, and the panel is
+  where this application keeps what it knows about a person. A choice already
+  made still holds there — it is stored, not held in the frame — and somebody
+  who has never chosen follows their system, which is the right default for a
+  screen they have not signed in to.

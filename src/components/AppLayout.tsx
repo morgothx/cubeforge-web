@@ -5,6 +5,7 @@ import { useSelectedTenant } from '../routes/last-tenant';
 import { useSession } from '../session/useSession';
 import { Brand } from './Brand';
 import { SectionNav } from './SectionNav';
+import { ThemeToggle } from './ThemeToggle';
 import { TenantSwitcher } from './TenantSwitcher';
 
 /**
@@ -56,7 +57,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
           {selected !== undefined && (
             <SectionNav tenantId={selected.tenantId} />
           )}
-          <div className="mt-auto flex flex-col items-start gap-2 border-t border-divider pt-4">
+          <div className="mt-auto flex flex-col items-stretch gap-2 border-t border-divider pt-4">
+            {/*
+              With the preferences rather than in a corner of the screen: this
+              panel is where the application keeps what it knows about the
+              person, and which ground they read on is one of those things.
+            */}
+            <ThemeToggle />
             <span className="text-meta break-all opacity-55">
               {standing.email}
             </span>

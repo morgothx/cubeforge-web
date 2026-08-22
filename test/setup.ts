@@ -22,6 +22,33 @@ import { forgetRequests, server } from './server';
 configure({ asyncUtilTimeout: 3_000 });
 
 /**
+ * `matchMedia`, which jsdom does not implement and every browser has.
+ *
+ * The theme reads it to find the system's preference. Without this the call
+ * throws, React renders nothing, and **seventy tests across the whole suite
+ * fail with an empty document** — while the theme's own file passes, because it
+ * stubs `matchMedia` itself. A test that stubs a global proves the component
+ * works *given* the stub; only the rest of the suite proves the global exists.
+ *
+ * Stubbed here rather than guarded in the application: the environment is the
+ * deficient one, and code written to survive a missing browser API is code that
+ * cannot be read as describing a browser.
+ *
+ * Reports "no preference expressed", which is what an unconfigured environment
+ * honestly is. A test that cares overrides it.
+ */
+window.matchMedia = (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addEventListener: () => undefined,
+  removeEventListener: () => undefined,
+  addListener: () => undefined,
+  removeListener: () => undefined,
+  dispatchEvent: () => false,
+});
+
+/**
  * `onUnhandledRequest: 'error'` on purpose. A request nobody wrote a handler
  * for would otherwise reach the network, which makes a suite depend on a
  * machine's connectivity and turns a typo'd path into a backend that answered

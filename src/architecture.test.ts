@@ -14,6 +14,9 @@ const LAYERS: readonly (readonly [string, string])[] = [
   ['types', 'src/api/types'],
   ['refusal', 'src/api/refusal'],
   ['access', 'src/access/'],
+  // Which ground the application is drawn on. Depends on nothing but the
+  // document, and the panel's control depends on it.
+  ['theme', 'src/theme/'],
   ['session-store', 'src/api/session'],
   ['http', 'src/api/http'],
   ['endpoints', 'src/api/endpoints'],

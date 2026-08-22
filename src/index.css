@@ -169,7 +169,11 @@
  * followed the system would have a toggle that does nothing.
  */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='cubeforge']) {
+  /* `:not([data-theme])` rather than `:not([data-theme='cubeforge'])`, to match
+     exactly what daisyUI emits for its `prefersdark` theme. One rule for both
+     halves of the palette: no attribute means follow the system, an attribute
+     means obey it. Two spellings of the same intent is how they drift. */
+  :root:not([data-theme]) {
     --color-steel-100: #2c455d;
     --color-steel-200: #416180;
     --color-steel-700: #b5d9fd;
