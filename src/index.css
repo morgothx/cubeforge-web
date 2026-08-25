@@ -208,6 +208,63 @@
     font-family: var(--font-heading);
     font-weight: 600;
   }
+
+  /*
+   * The three states a browser will invent if the design does not state them.
+   *
+   * They belong in `base` rather than beside a component because they are not
+   * a component's business: every focusable thing on the screen gets the same
+   * ring, and a control that wanted its own would be the bug. Being in `base`
+   * also means a utility can still override it where the ring has to be drawn
+   * on a wrapper instead — which is what the theme toggle does, since its own
+   * radio inputs are `sr-only` and a ring around nothing helps nobody.
+   */
+  :focus-visible {
+    /* `primary`, not a hex: it is the one slot both themes re-tune, so the
+       ring stays visible on either ground for free. Chrome's own ring happened
+       to be legible on the dark theme when I looked, which is luck, not a
+       guarantee — Safari draws a different colour and Firefox a different
+       width. */
+    outline: 2px solid var(--color-primary);
+    /* Off the edge, so the ring reads as a ring rather than as a border that
+       got 2px thicker. The design's borders are all 1px hairlines. */
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    /* The pair daisyUI guarantees is legible against itself. */
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  :disabled {
+    /* Said once, for every control — including the ones daisyUI has never
+       heard of. Faded rather than greyed, because a grey in this palette is a
+       colour that means something else. */
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+/*
+ * One focus ring, including on the controls daisyUI rings itself.
+ *
+ * `.input` and `.select` draw their own outline in `--input-color`, which is
+ * also the colour of their border and their inset shadow — so the way to agree
+ * with the rest of the screen is to override the outline colour alone and
+ * leave that variable where it is. Overriding the variable would tint every
+ * field's border steel, which is a different design.
+ *
+ * Deliberately unlayered: daisyUI's rule lives in the `components` layer, and
+ * an unlayered rule beats every layer no matter how specific the loser is.
+ * Trying to out-specify it instead is a fight that gets re-fought on upgrade.
+ */
+.input:focus,
+.input:focus-within,
+.select:focus,
+.select:focus-within,
+.select:open {
+  outline-color: var(--color-primary);
 }
 
 /*

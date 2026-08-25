@@ -414,3 +414,34 @@ Findings recorded during implementation belong here.
   made still holds there — it is stored, not held in the frame — and somebody
   who has never chosen follows their system, which is the right default for a
   screen they have not signed in to.
+
+## Post-validation remediation
+
+The feature-level validation returned NO-GO on one critical finding: the
+stylesheet named no interaction states at all. Closed here.
+
+- **A focus ring nobody declared is still drawn.** That is what made this easy
+  to miss — going and looking in Chrome showed a perfectly legible ring on the
+  dark ground, so the screen was not broken. It was unowned: Chrome's colour,
+  Safari's different one, and nothing in the repo with an opinion. The finding
+  was corrected down from "accessibility failure" to "coverage gap" *because* I
+  went and looked, and then fixed anyway, because the design should say it.
+- **The ring is `--color-primary`, never a hex.** It is the one slot both themes
+  re-tune, so one declaration stays visible on either ground. A hex would be a
+  ring that is correct on one and invisible on the other.
+- **daisyUI rings `.input` and `.select` itself, in `--input-color`** — which is
+  also their border and inset-shadow colour, so the outline colour is overridden
+  alone and the variable left where it is. Overriding the variable would tint
+  every field's border steel, which is a different design. The override is
+  deliberately unlayered: daisyUI's rule is in the `components` layer, and an
+  unlayered rule beats every layer without a specificity fight that has to be
+  re-fought on upgrade.
+- **`::selection` uses the `primary` / `primary-content` pair**, the one daisyUI
+  guarantees is legible against itself.
+- **`:disabled` is said once in `base`**, so it covers the controls daisyUI has
+  never heard of, not only the ones it styles.
+- **`background-color:` contains `color:`.** The `::selection` test asserted
+  `/color:/` and was satisfied by the background alone; the probe that deleted
+  the text colour passed. Anchored on the line start. Same shape as the
+  `--radius: 0` regex that accepted `0.5rem` — *a probe that fails nothing is a
+  claim about the probe until it has been read.*
