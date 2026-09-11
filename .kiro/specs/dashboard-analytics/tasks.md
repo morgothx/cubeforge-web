@@ -30,7 +30,7 @@ the one the design proposed, field for field.
 
 ## 1. Foundation
 
-- [ ] 1.1 Write down the platform's analytics shapes, and teach the harness to
+- [x] 1.1 Write down the platform's analytics shapes, and teach the harness to
       answer them
   - The vocabulary, the question body and the answer are recorded as the
     platform sends them. Names are plain strings, because a union of names
@@ -391,3 +391,23 @@ the one the design proposed, field for field.
 ## Implementation Notes
 
 *Findings worth inheriting are recorded here as tasks complete.*
+
+- **1.1** — **The request counter counts requests nobody handled.** It records
+  on `request:start`, so an unhandled request, answered by the harness's 500
+  policy, counts too. "Counts the analytics requests" passed before the routes
+  existed. It now also asserts every counted request was answered `200`, and
+  any later count assertion should do the same.
+
+  The fixtures mirror the platform's forms: measures as decimal strings, days as
+  `YYYY-MM-DDT00:00:00.000`, `null` for a period-bounded measure beside a
+  cumulative one, and `reason: 'model-unreachable'`, a real reason
+  `cube-client.ts` emits. The fixture vocabulary is the API's literal contract
+  body, pinned in the harness test. Five probes bit:
+  - vocabulary drift;
+  - a numeric measure;
+  - zero for null;
+  - a missing `Retry-After`;
+  - an opened `shape` union.
+
+  A `@ts-expect-error` on an excess property must sit on the property's line,
+  not the declaration's.

@@ -1,4 +1,11 @@
-import type { CallerStanding, Member, Role, Session } from './types';
+import type {
+  CallerStanding,
+  Member,
+  ModelledAnswer,
+  Role,
+  Session,
+  VocabularyGrouping,
+} from './types';
 
 /**
  * Type-level assertions, checked by `pnpm typecheck` rather than by the runner.
@@ -73,5 +80,57 @@ describe('the shapes the backend answers with', () => {
     };
 
     expect(session.sessionExpiresAt).toContain('T');
+  });
+});
+
+describe('the shapes the analytics routes answer with', () => {
+  it('reads a grouping only in the three shapes it can be drawn in', () => {
+    const labelled: VocabularyGrouping = {
+      name: 'product',
+      shape: 'labelled',
+      codeColumn: 'product_code',
+      nameColumn: 'product_name',
+    };
+    expect(labelled.shape).toBe('labelled');
+
+    const invented: VocabularyGrouping = {
+      name: 'region',
+      // @ts-expect-error a shape the dashboard has no way to render
+      shape: 'map',
+      column: 'region',
+    };
+    expect(invented).toBeDefined();
+
+    const halfLabelled: VocabularyGrouping = {
+      name: 'product',
+      shape: 'labelled',
+      // @ts-expect-error a labelled grouping names its code and name by role
+      column: 'product_code',
+    };
+    expect(halfLabelled).toBeDefined();
+  });
+
+  it('keeps an answer that was never exported apart from one that has rows', () => {
+    const quiet: ModelledAnswer = {
+      state: 'answered',
+      completeThrough: '2026-09-10T03:00:00.000Z',
+      servedFrom: 'prepared',
+      rows: [],
+    };
+    const absent: ModelledAnswer = { state: 'never-exported' };
+    expect([quiet.state, absent.state]).toEqual(['answered', 'never-exported']);
+
+    const told: ModelledAnswer = {
+      state: 'answered',
+      completeThrough: '2026-09-10T03:00:00.000Z',
+      // @ts-expect-error provenance is one of two things the platform reports
+      servedFrom: 'cache',
+      rows: [],
+    };
+    expect(told).toBeDefined();
+
+    // @ts-expect-error an answer never exported has no rows to reach
+    const leaked: ModelledAnswer = { state: 'never-exported', rows: [] };
+    expect(leaked).toBeDefined();
   });
 });

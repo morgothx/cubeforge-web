@@ -64,3 +64,83 @@ export interface Member {
   readonly role: Role;
   readonly active: boolean;
 }
+
+/**
+ * A measure the platform offers, by the name a question uses.
+ *
+ * Names are plain strings on purpose. A union of today's names would be the
+ * copy of the vocabulary that the platform now publishes precisely so that
+ * nobody has to keep one: the dashboard learns what exists by asking.
+ */
+export interface VocabularyMeasure {
+  readonly name: string;
+  /** Counts movements recorded before a question's period as well as within it. */
+  readonly cumulative: boolean;
+}
+
+/**
+ * A grouping, and the row columns it fills.
+ *
+ * The shape, unlike the name, is a closed union: each one is drawn a different
+ * way, so a shape the dashboard has never seen must fail to compile rather than
+ * render as something it is not. A labelled entity names its two columns by
+ * role because which one is the code is exactly what a reader cannot guess.
+ */
+export type VocabularyGrouping =
+  | { readonly name: string; readonly shape: 'day'; readonly column: string }
+  | {
+      readonly name: string;
+      readonly shape: 'category';
+      readonly column: string;
+    }
+  | {
+      readonly name: string;
+      readonly shape: 'labelled';
+      readonly codeColumn: string;
+      readonly nameColumn: string;
+    };
+
+/** What may be asked, as `GET /tenants/:tenantId/analytics/vocabulary` answers. */
+export interface Vocabulary {
+  readonly measures: readonly VocabularyMeasure[];
+  readonly groupings: readonly VocabularyGrouping[];
+  readonly readBy: readonly string[];
+  readonly longestPeriodDays: number;
+  /** An IANA zone. Every day the platform counts is a day in this zone. */
+  readonly calendar: string;
+}
+
+/** A composed question, as `POST /tenants/:tenantId/analytics/questions` takes it. */
+export interface QuestionBody {
+  readonly measures: readonly string[];
+  readonly groupings: readonly string[];
+  readonly from: string;
+  readonly to: string;
+  readonly by: string;
+}
+
+/**
+ * One value in a row, in the form the platform sends it.
+ *
+ * A measure may arrive as a decimal string — the engine reports every column
+ * as text — and absence arrives as `null`, never as an empty string. Reading
+ * either into a number is the reader's job, and guessing is not allowed there.
+ */
+export type RowValue = string | number | null;
+
+/**
+ * What one question came back with: rows, or the fact that there could be
+ * none yet.
+ *
+ * `rows` is unreachable until the state has been narrowed, which is what keeps
+ * a tenant nothing was ever exported for from being drawn as a quiet period.
+ */
+export type ModelledAnswer =
+  | {
+      readonly state: 'answered';
+      /** An ISO instant: the moment the rows are complete through. */
+      readonly completeThrough: string;
+      readonly servedFrom: 'prepared' | 'exported-objects';
+      readonly rows: readonly Readonly<Record<string, RowValue>>[];
+    }
+  | { readonly state: 'never-exported' };
