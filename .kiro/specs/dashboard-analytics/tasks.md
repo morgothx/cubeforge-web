@@ -94,7 +94,7 @@ the one the design proposed, field for field.
   - _Requirements: 2.5, 4.2, 4.4_
   - _Boundary: Calendar, architecture test_
 
-- [ ] 2.2 Decide whether a composition can be asked, wherever it came from
+- [x] 2.2 Decide whether a composition can be asked, wherever it came from
   - One check serves a person's draft, an address and a fixed composition
     alike, against the vocabulary. It reports every problem at once: no
     measure, a name not offered, an unreadable day, a reversed period, and a
@@ -437,3 +437,13 @@ the one the design proposed, field for field.
   - a moment rounded;
   - an exclusive span;
   - the analytics layer importing a query, which the architecture test names.
+- **2.2** — The default moment is `vocabulary.readBy[0]`, the platform's first,
+  never a literal. `composition.ts` holds no vocabulary name, which 2.6's scan
+  will enforce. An empty list parameter (`measures=`) reads as none chosen, not
+  as a wrong name. The period's two ends default independently. Five probes
+  bit:
+  - only the first problem reported;
+  - a wrong day replaced by the default;
+  - typed order kept;
+  - the longest period off by one;
+  - the moment left out of the address.
