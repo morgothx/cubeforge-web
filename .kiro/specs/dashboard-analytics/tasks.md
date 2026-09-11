@@ -78,7 +78,7 @@ the one the design proposed, field for field.
 
 ## 2. The analytics core — pure modules in `src/analytics/`
 
-- [ ] 2.1 Count days the way the platform does
+- [x] 2.1 Count days the way the platform does
   - A day type that is a real `YYYY-MM-DD` with no zone of its own, today in the
     platform's calendar, day arithmetic and an inclusive span.
   - Days and moments are formatted in the platform's calendar with the zone
@@ -423,3 +423,17 @@ the one the design proposed, field for field.
   The negative guards ("carries no wait when the header says …") passed before
   the code existed. Probes accepting decimals and accepting zero each turned
   them red, so they are real. Six probes bit in all.
+- **2.1** — **Moving the machine's zone in a test: `vi.stubEnv('TZ', zone)`.**
+  Node honours `TZ` changes at runtime, and the stub is typed without Node,
+  which `src/` is. `process.env` fails typecheck and lint here. The stub was
+  verified to actually move local readings: this machine runs in Bogotá, and
+  under the stub UTC read the 10th while Bogotá read the 9th. So the "whatever
+  zone the machine is in" tests are not vacuous.
+
+  `Intl` truncates to the minute; it does not round. `en-GB` writes September
+  as "Sept" on current ICU, so assertions match `Sept?`. Five probes bit:
+  - today read locally;
+  - a day formatted locally;
+  - a moment rounded;
+  - an exclusive span;
+  - the analytics layer importing a query, which the architecture test names.

@@ -14,6 +14,11 @@ const LAYERS: readonly (readonly [string, string])[] = [
   ['types', 'src/api/types'],
   ['refusal', 'src/api/refusal'],
   ['access', 'src/access/'],
+  // What may be asked, how an answer is read, and whether it may be drawn:
+  // decisions over the platform's shapes, made without a request, a query or a
+  // screen. Sitting this low is what keeps them testable on their own — and
+  // what makes a component that needs a request go through the queries above.
+  ['analytics', 'src/analytics/'],
   // Which ground the application is drawn on. Depends on nothing but the
   // document, and the panel's control depends on it.
   ['theme', 'src/theme/'],
