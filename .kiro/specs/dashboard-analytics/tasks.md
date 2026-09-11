@@ -109,7 +109,7 @@ the one the design proposed, field for field.
   - _Requirements: 3.1, 3.3, 3.4, 3.8, 3.9_
   - _Boundary: Composition_
 
-- [ ] 2.3 Read an answer's rows, or refuse to
+- [x] 2.3 Read an answer's rows, or refuse to
   - Not `(P)`: it reads the checked composition 2.2 defines.
   - Rows become typed cells, driven by each grouping's declared shape and
     columns. A product or location is read as its code and its current name.
@@ -447,3 +447,17 @@ the one the design proposed, field for field.
   - typed order kept;
   - the longest period off by one;
   - the moment left out of the address.
+- **2.3** — `Column` gained a `shape` the design did not list. An empty answer
+  still has to say its day column is counted in the platform's calendar, and
+  without a row there is nothing else to learn that from.
+
+  Three `key in row` checks were written first and proven dead by a probe that
+  removed them with no test failing. A missing key reads as `undefined`, which
+  is already neither text nor a number nor `null`, so the checks could never
+  decide anything. They were deleted.
+
+  Four probes bit:
+  - any string read as a number;
+  - null read as zero;
+  - rows left unordered;
+  - a day read whole rather than from its first ten characters.
