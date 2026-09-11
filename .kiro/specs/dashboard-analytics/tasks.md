@@ -123,7 +123,7 @@ the one the design proposed, field for field.
   - _Requirements: 3.5, 8.1_
   - _Boundary: Reading_
 
-- [ ] 2.4 Decide whether an answer may be drawn, and draw every row or none
+- [x] 2.4 Decide whether an answer may be drawn, and draw every row or none
   - One plan per measure, from a read answer.
   - Drawable shapes:
     - one grouping of any shape, as its categories;
@@ -461,3 +461,22 @@ the one the design proposed, field for field.
   - null read as zero;
   - rows left unordered;
   - a day read whole rather than from its first ten characters.
+- **2.4** — Three findings, all from probes that did not bite where expected.
+
+  **A bare `400` trips the shell's status scan.** `MOST_MARKS = 400` made
+  `refusals.test.tsx` fail: it flags any file above the request layer holding
+  `400`, `404`, `409` or `429`. The scan is right to be blunt, so the constant
+  moved rather than the guard: `366`, a year and a day, the longest period the
+  platform answers and so the most daily marks a day axis can carry.
+
+  **The extremes test was blind to its own claim.** Values of `-4` and `10`
+  give the same extremes whether or not zero is folded in. An all-positive
+  case was added, and the probe then bit.
+
+  **A generated day must be a real day.** `2026-09-${index + 1}` produced
+  `2026-09-31`, the reading refused it, and the marks bound was never reached —
+  the failure looked like the code and was the fixture. Days are built by
+  arithmetic now.
+
+  Six probes bit in the end, including the task's: a plan that drops its last
+  row fails the invariant over generated tables *and* two example tests.
