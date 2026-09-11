@@ -143,7 +143,7 @@ the one the design proposed, field for field.
   - _Requirements: 3.6, 3.7, 8.1_
   - _Boundary: Chart plan_
 
-- [ ] 2.5 (P) Say everything that is not a refusal
+- [x] 2.5 (P) Say everything that is not a refusal
   - One sentence per composition problem, never-exported, nothing recorded, the
     cumulative note, the two provenance phrases and the unreadable statement.
   - Nothing recorded never covers days the answer is not complete through. When
@@ -480,3 +480,13 @@ the one the design proposed, field for field.
 
   Six probes bit in the end, including the task's: a plan that drops its last
   row fails the invariant over generated tables *and* two example tests.
+- **2.5** — **A distinctness test that only caught literal reuse.** 5.3's check
+  compared the two empty-state sentences for equality and containment, and a
+  probe that borrowed the quiet sentence slipped through: the formatter writes
+  "10 Sept 2026" and the probe had written "10 Sep 2026", so containment was
+  false over one letter. It now asserts that "nothing was recorded" belongs to
+  the quiet period alone, and the probe bites.
+
+  `nothingRecorded` has three cases, and the boundary is `through >= to`: an
+  answer complete through the period's last day covers all of it. Six probes
+  bit, including both boundary directions and a sentence promising currency.
