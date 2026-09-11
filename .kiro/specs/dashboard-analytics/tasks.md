@@ -159,7 +159,7 @@ the one the design proposed, field for field.
   - _Requirements: 2.4, 3.3, 3.4, 4.2, 5.2, 5.3, 10.4_
   - _Boundary: Wording_
 
-- [ ] 2.6 (P) Choose the overview's two questions in advance
+- [x] 2.6 (P) Choose the overview's two questions in advance
   - On hand by product, and net quantity and movement count by recorded day and
     kind, both read by the recorded moment.
   - These are the only measure and grouping names in application source.
@@ -490,3 +490,12 @@ the one the design proposed, field for field.
   `nothingRecorded` has three cases, and the boundary is `through >= to`: an
   answer complete through the period's last day covers all of it. Six probes
   bit, including both boundary directions and a sentence promising currency.
+- **2.6** — The names scan reads all 74 files under `src/` (checked, because a
+  glob that silently covered only this directory would pass while protecting
+  nothing) and matches quoted names with comments stripped. Probes confirmed
+  both halves: a name written in another module's **code** trips it, and a name
+  in another module's **comment** does not.
+
+  The scan asserts one file ending in `/overview.ts` rather than a full path:
+  the glob's keys are relative to the test, and their prefix is the bundler's
+  business rather than the rule's.
