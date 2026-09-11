@@ -17,12 +17,22 @@ export type Refusal =
     }
   /** `404`: refused or absent, indistinguishable by design. No cause exists. */
   | { readonly kind: 'unavailable' }
-  /** `429`: too many attempts at a credential endpoint. */
-  | { readonly kind: 'throttled' }
+  /**
+   * `429`: too many attempts. `retryAfterSeconds` when the platform said how
+   * long — the analytics routes do, in a plain `Retry-After` — and absent when
+   * it did not.
+   */
+  | { readonly kind: 'throttled'; readonly retryAfterSeconds?: number }
   /** No answer, or an answer that was the service failing. */
   | { readonly kind: 'unreachable' }
   /** Access expired and could not be renewed. */
-  | { readonly kind: 'session-ended' };
+  | { readonly kind: 'session-ended' }
+  /**
+   * A question named something the platform does not offer. The dashboard
+   * composed it from what it was offered, so this is nobody's mistake to fix —
+   * and it carries no name, because the refused one was never the person's.
+   */
+  | { readonly kind: 'not-offered' };
 
 export class ApiError extends Error {
   /**
@@ -69,12 +79,19 @@ function rejection(body: unknown): Refusal {
  * not a correlation identifier. Anything smuggled through is one careless
  * render away from being on screen (8.5).
  */
-export function classify(status: number, body: unknown): Refusal {
+export function classify(
+  status: number,
+  body: unknown,
+  retryAfter?: string | null,
+): Refusal {
   if (status === 400 || status === 409) {
     return rejection(body);
   }
   if (status === 429) {
-    return { kind: 'throttled' };
+    const seconds = secondsIn(retryAfter);
+    return seconds === undefined
+      ? { kind: 'throttled' }
+      : { kind: 'throttled', retryAfterSeconds: seconds };
   }
   if (status >= 500) {
     // Reached, and it failed to serve. Unavailability would offer the person
@@ -85,6 +102,22 @@ export function classify(status: number, body: unknown): Refusal {
   // unexpected status is reported as an absence rather than as a cause the
   // platform never gave.
   return { kind: 'unavailable' };
+}
+
+/**
+ * The wait a `Retry-After` states, when it states one this client can honour.
+ *
+ * Only a positive whole number of seconds. The header may also carry an
+ * HTTP-date, which would mean comparing a server's clock with this one — the
+ * second place in the client where a timer decided something — and the
+ * platform never sends it. Anything else is no wait at all rather than a guess
+ * at one.
+ */
+function secondsIn(retryAfter: string | null | undefined): number | undefined {
+  if (retryAfter === null || retryAfter === undefined) return undefined;
+  if (!/^\d+$/.test(retryAfter.trim())) return undefined;
+  const seconds = Number(retryAfter.trim());
+  return seconds > 0 ? seconds : undefined;
 }
 
 /**
@@ -111,7 +144,14 @@ export function describeRefusal(refusal: Refusal): string {
     case 'unavailable':
       return 'This is not available.';
     case 'throttled':
-      // Not "wait a moment". The backend's cooldown is 900 seconds, so a
+      // When the platform said how long, say exactly that: a person told the
+      // real wait can act on it, and the view holding the question counts it
+      // down by handing in the seconds left.
+      if (refusal.retryAfterSeconds !== undefined) {
+        const seconds = refusal.retryAfterSeconds;
+        return `Too many requests. You can try again in ${seconds} ${seconds === 1 ? 'second' : 'seconds'}.`;
+      }
+      // Not "wait a moment". The credential cooldown is 900 seconds, so a
       // moment is off by a factor of nine hundred, and somebody who believes
       // it comes back in ten seconds to be refused again. The notice offers no
       // button for the same reason (`RefusalNotice`).
@@ -120,6 +160,8 @@ export function describeRefusal(refusal: Refusal): string {
       return 'The service could not be reached. Please try again.';
     case 'session-ended':
       return 'Your session has ended. Please sign in again.';
+    case 'not-offered':
+      return 'This could not be answered: it asked for something the platform does not offer. Nothing you did caused this.';
   }
 }
 

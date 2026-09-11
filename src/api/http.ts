@@ -186,7 +186,13 @@ export async function unauthorized<T>(
   }
 
   if (!response.ok) {
-    throw new ApiError(classify(response.status, await bodyOf(response)));
+    throw new ApiError(
+      classify(
+        response.status,
+        await bodyOf(response),
+        response.headers.get('Retry-After'),
+      ),
+    );
   }
   return answerOf<T>(response);
 }
@@ -219,6 +225,7 @@ export async function request<T>(
   const refusal = classify(
     attempt.response.status,
     await bodyOf(attempt.response),
+    attempt.response.headers.get('Retry-After'),
   );
 
   // Only the wordless refusal can mean expiry. A rejection, a conflict and a
@@ -258,6 +265,10 @@ export async function request<T>(
   }
   // Renewed, asked again, refused again: it was never expiry.
   throw new ApiError(
-    classify(retry.response.status, await bodyOf(retry.response)),
+    classify(
+      retry.response.status,
+      await bodyOf(retry.response),
+      retry.response.headers.get('Retry-After'),
+    ),
   );
 }

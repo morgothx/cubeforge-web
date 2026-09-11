@@ -66,6 +66,39 @@ describe('classifying an answer', () => {
     });
   });
 
+  it('carries how long to wait when the platform says, in whole seconds', () => {
+    expect(
+      classify(
+        429,
+        { statusCode: 429, message: 'ThrottlerException: Too Many Requests' },
+        '42',
+      ),
+    ).toEqual({ kind: 'throttled', retryAfterSeconds: 42 });
+  });
+
+  /**
+   * Only a positive whole number of seconds is a wait this client will honour.
+   * The platform sends exactly that; the HTTP-date form would need a clock
+   * compared against a server's, and a client that guessed at the rest would
+   * hold questions for a wait nobody stated.
+   */
+  it.each([
+    null,
+    undefined,
+    '',
+    '0',
+    '-3',
+    '1.5',
+    'soon',
+    'Wed, 21 Oct 2026 07:28:00 GMT',
+  ])('carries no wait when the header says %p', (retryAfter) => {
+    expect(classify(429, {}, retryAfter)).toEqual({ kind: 'throttled' });
+  });
+
+  it('ignores a wait on anything that is not too many attempts', () => {
+    expect(classify(503, {}, '30')).toEqual({ kind: 'unreachable' });
+  });
+
   it.each([500, 502, 503])(
     'reads a service that failed to serve (%i) as unreachable',
     (status) => {
@@ -148,13 +181,40 @@ describe('putting a refusal into words', () => {
     expect(words).not.toMatch(/a moment|moment|shortly|in a few/i);
   });
 
+  it('says how long to wait when the platform said how long', () => {
+    expect(
+      describeRefusal({ kind: 'throttled', retryAfterSeconds: 42 }),
+    ).toMatch(/42 seconds/);
+    expect(
+      describeRefusal({ kind: 'throttled', retryAfterSeconds: 1 }),
+    ).toMatch(/1 second\b(?!s)/);
+  });
+
+  /**
+   * A name the platform does not offer reached it because the dashboard
+   * composed it — the person chose from what they were offered. So the words
+   * say the question could not be answered and blame nobody, and they repeat
+   * no name: the refused name is the dashboard's, not something to read.
+   */
+  it('says a question asked for something not offered, without blaming the person', () => {
+    const words = describeRefusal({ kind: 'not-offered' });
+
+    expect(words).toMatch(/could not be answered/i);
+    expect(words).toMatch(/does not offer/i);
+    expect(words).not.toMatch(
+      /you entered|you chose|you asked|invalid|incorrect|check your|your mistake|wrong/i,
+    );
+  });
+
   it('answers every outcome in the vocabulary', () => {
     const every: Refusal[] = [
       { kind: 'rejected', message: 'a cause' },
       { kind: 'unavailable' },
       { kind: 'throttled' },
+      { kind: 'throttled', retryAfterSeconds: 30 },
       { kind: 'unreachable' },
       { kind: 'session-ended' },
+      { kind: 'not-offered' },
     ];
 
     // Adding an outcome without giving it words fails here rather than showing

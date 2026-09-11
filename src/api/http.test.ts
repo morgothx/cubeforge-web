@@ -132,6 +132,46 @@ describe('an authorized request', () => {
   });
 });
 
+describe('a platform that says to wait', () => {
+  it('hands the wait to the caller, and asks exactly once', async () => {
+    const { session, request } = await freshRequestLayer();
+    session.adopt(backend.session);
+    server.use(
+      refusals.paced('post', '/api/tenants/:tenantId/analytics/questions', 42),
+    );
+
+    await expect(
+      request('/tenants/t-acme/analytics/questions', {
+        method: 'POST',
+        body: { measures: ['net_quantity'] },
+      }),
+    ).rejects.toMatchObject({
+      refusal: { kind: 'throttled', retryAfterSeconds: 42 },
+    });
+    // A pace refusal says what it is; asking again, or renewing a perfectly
+    // good credential, would only spend more of an allowance already spent.
+    expect(
+      countRequests('POST', '/api/tenants/t-acme/analytics/questions'),
+    ).toBe(1);
+    expect(countRequests('POST', '/api/auth/refresh')).toBe(0);
+  });
+
+  it('hands the wait on the path that carries no credential too', async () => {
+    vi.resetModules();
+    const { unauthorized } = await import('./http');
+    server.use(refusals.paced('post', '/api/auth/sign-in', 900));
+
+    await expect(
+      unauthorized('/auth/sign-in', {
+        method: 'POST',
+        body: { email: 'a@example.com', password: 'p' },
+      }),
+    ).rejects.toMatchObject({
+      refusal: { kind: 'throttled', retryAfterSeconds: 900 },
+    });
+  });
+});
+
 describe('access that expires mid-session', () => {
   it('renews and retries, and the caller sees only the result', async () => {
     const { session, request } = await freshRequestLayer();

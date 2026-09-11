@@ -57,7 +57,7 @@ the one the design proposed, field for field.
   - _Requirements: 9.1, 9.2_
   - _Boundary: Types, test harness_
 
-- [ ] 1.2 Carry the platform's wait, and a refused name that blames nobody
+- [x] 1.2 Carry the platform's wait, and a refused name that blames nobody
   - `Retry-After` is read where every other response detail is read, and it
     reaches the `throttled` refusal as whole seconds. The value must be a
     positive integer. Absent, zero, a date or garbage carries nothing, and the
@@ -411,3 +411,15 @@ the one the design proposed, field for field.
 
   A `@ts-expect-error` on an excess property must sit on the property's line,
   not the declaration's.
+- **1.2** — **Sign-in keeps its sentence, verified rather than assumed.** The
+  API's credential guard counts named buckets, and for those the throttler
+  library emits only `Retry-After-sign-in-origin` and its siblings. The plain
+  `Retry-After` is added by `BucketThrottlerGuard` alone, which is analytics and
+  inventory. So a sign-in `429` carries no wait here, and the 900-second wording
+  is unchanged. If the API ever adds the plain header to credentials, sign-in
+  would state the exact wait instead, which would be an improvement rather than
+  a regression.
+
+  The negative guards ("carries no wait when the header says …") passed before
+  the code existed. Probes accepting decimals and accepting zero each turned
+  them red, so they are real. Six probes bit in all.
