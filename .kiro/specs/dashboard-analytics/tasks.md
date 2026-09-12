@@ -170,7 +170,7 @@ the one the design proposed, field for field.
   - _Requirements: 2.1, 2.2, 2.3, 9.3_
   - _Boundary: Overview pair_
 
-- [ ] 2.7 (P) Hold every question while the platform says to wait
+- [x] 2.7 (P) Hold every question while the platform says to wait
   - One hold per caller across every tenant, because that is how the platform
     counts. It is set in seconds and reports the whole seconds left, and
     listeners hear when it changes.
@@ -499,3 +499,11 @@ the one the design proposed, field for field.
   The scan asserts one file ending in `/overview.ts` rather than a full path:
   the glob's keys are relative to the test, and their prefix is the bundler's
   business rather than the rule's.
+- **2.7** — The hold spec deliberately has **no local reset**: it depends on
+  `test/setup.ts` releasing the hold after every test. With a local
+  `beforeEach` as well, removing the global release would have broken nothing,
+  and the setup line would have been unverifiable. A probe removing it now
+  fails a test, which is the only reason to trust it.
+
+  A later, shorter wait never shortens a longer one, seconds round up, and a
+  passed wait reads as zero rather than a negative. Five probes bit.
