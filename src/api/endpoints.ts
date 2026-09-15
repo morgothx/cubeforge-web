@@ -1,5 +1,14 @@
 import { request, unauthorized } from './http';
-import type { CallerStanding, Member, Role, Session } from './types';
+import { ApiError } from './refusal';
+import type {
+  CallerStanding,
+  Member,
+  ModelledAnswer,
+  QuestionBody,
+  Role,
+  Session,
+  Vocabulary,
+} from './types';
 
 /**
  * Every route this feature uses, written down exactly once.
@@ -17,8 +26,12 @@ import type { CallerStanding, Member, Role, Session } from './types';
  */
 
 /** Where a tenant's identifier is put into a path, escaped, in one place. */
+function tenantPath(tenantId: string): string {
+  return `/tenants/${encodeURIComponent(tenantId)}`;
+}
+
 function membersOf(tenantId: string): string {
-  return `/tenants/${encodeURIComponent(tenantId)}/members`;
+  return `${tenantPath(tenantId)}/members`;
 }
 
 export function signIn(credentials: {
@@ -106,4 +119,61 @@ export function revokeMembership(
     `${membersOf(tenantId)}/${encodeURIComponent(membershipId)}`,
     { method: 'DELETE' },
   );
+}
+
+/**
+ * What may be asked of this tenant's analytics: the measures, the groupings,
+ * the moments, the longest period and the calendar, as the platform publishes
+ * them. The dashboard offers exactly these and defines no name of its own.
+ */
+export function fetchVocabulary(tenantId: string): Promise<Vocabulary> {
+  return request<Vocabulary>(`${tenantPath(tenantId)}/analytics/vocabulary`);
+}
+
+/**
+ * The refusals whose words the platform wrote to be read.
+ *
+ * An answer too large names its limit and both remedies (7.2); a period too
+ * long names the longest the platform answers. Both are about the question a
+ * person can reshape, so they pass through as written.
+ */
+const READABLE_REFUSALS: readonly (string | undefined)[] = [
+  'question',
+  'period',
+];
+
+/**
+ * One composed question, answered — or refused in terms a person can act on.
+ *
+ * **One reinterpretation, and only here.** Every other rejection this route can
+ * give is about something the dashboard composed rather than something the
+ * person typed: a measure or grouping the platform does not offer, or a body it
+ * could not read. The person chose from what they were offered and cannot fix
+ * either, so presenting it as `rejected` — tinted, against a field — would blame
+ * them for the dashboard's disagreement with the platform (7.1). It becomes
+ * `not-offered`, which blames nobody and quotes nothing back.
+ *
+ * No abort signal is passed. An answer that arrives after its view has moved on
+ * is discarded by its key, and under StrictMode an abort would cancel and resend
+ * — spending a second question of the ten a minute allows.
+ */
+export async function askQuestion(
+  tenantId: string,
+  body: QuestionBody,
+): Promise<ModelledAnswer> {
+  try {
+    return await request<ModelledAnswer>(
+      `${tenantPath(tenantId)}/analytics/questions`,
+      { method: 'POST', body },
+    );
+  } catch (error) {
+    if (
+      error instanceof ApiError &&
+      error.refusal.kind === 'rejected' &&
+      !READABLE_REFUSALS.includes(error.refusal.field)
+    ) {
+      throw new ApiError({ kind: 'not-offered' });
+    }
+    throw error;
+  }
 }

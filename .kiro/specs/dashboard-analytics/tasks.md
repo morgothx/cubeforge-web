@@ -183,7 +183,7 @@ the one the design proposed, field for field.
 
 ## 3. The platform, asked
 
-- [ ] 3.1 Ask the two routes, and reinterpret a name the platform refused
+- [x] 3.1 Ask the two routes, and reinterpret a name the platform refused
   - The vocabulary for a tenant, and a question for a tenant, both through the
     authorized request path with the tenant escaped into the path.
   - A `rejected` refusal whose field is `question` or `period` passes through
@@ -507,3 +507,17 @@ the one the design proposed, field for field.
 
   A later, shorter wait never shortens a longer one, seconds round up, and a
   passed wait reads as zero rather than a negative. Five probes bit.
+- **3.1** — The reinterpretation keeps a short list of readable refusals,
+  `question` and `period`, rather than listing the unknown-name fields. It
+  fails safe: a new field the platform adds reads as `not-offered` and blames
+  nobody, instead of reaching a person as a tinted rejection of their own.
+
+  The tenant path moved into one `tenantPath`, which the members routes now
+  share. The movements scan passed before the code existed. A probe adding a
+  movements endpoint turned it red, so it is a real guard. Five probes bit in
+  all:
+  - reinterpreting everything;
+  - reinterpreting nothing;
+  - `period` dropped from the readable list;
+  - an unescaped tenant;
+  - a movements route.

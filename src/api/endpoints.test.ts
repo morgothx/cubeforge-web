@@ -205,6 +205,145 @@ describe('the routes that carry the caller', () => {
     expect(countRequests('POST', '/api/auth/refresh')).toBe(1);
   });
 
+  it("asks for a tenant's vocabulary, carrying the caller and escaping the tenant", async () => {
+    let pathname = '';
+    let authorization: string | null = null;
+    server.use(
+      http.get('/api/tenants/:tenantId/analytics/vocabulary', ({ request }) => {
+        pathname = new URL(request.url).pathname;
+        authorization = request.headers.get('Authorization');
+        return HttpResponse.json(backend.analytics.vocabulary);
+      }),
+    );
+
+    await expect(endpoints.fetchVocabulary('t/acme')).resolves.toEqual(
+      backend.analytics.vocabulary,
+    );
+
+    // A tenant identifier is data, and data that becomes a path segment is
+    // escaped, or `t/acme` addresses a route that does not exist.
+    expect(pathname).toBe('/api/tenants/t%2Facme/analytics/vocabulary');
+    expect(authorization).toBe('Bearer access-1');
+  });
+
+  it('asks a composed question with the body it was given, and answers what came back', async () => {
+    const body = {
+      measures: ['net_quantity'],
+      groupings: ['kind'],
+      from: '2026-08-12',
+      to: '2026-09-10',
+      by: 'recorded',
+    };
+    const answer = {
+      state: 'never-exported',
+    } as const;
+    const seen = watch(
+      'post',
+      '/api/tenants/:tenantId/analytics/questions',
+      () => HttpResponse.json(answer),
+    );
+
+    await expect(endpoints.askQuestion('t-acme', body)).resolves.toEqual(
+      answer,
+    );
+
+    expect(seen()).toEqual({ authorization: 'Bearer access-1', body });
+  });
+
+  describe('a question the platform refused as malformed', () => {
+    const QUESTIONS = '/api/tenants/:tenantId/analytics/questions';
+    const aBody = {
+      measures: ['net_quantity'],
+      groupings: [],
+      from: '2026-08-12',
+      to: '2026-09-10',
+      by: 'recorded',
+    };
+
+    /**
+     * The dashboard composed this question from what the platform offered, so
+     * a name the platform refuses is not something the person typed and cannot
+     * be something they fix. Shown as a rejection, it would sit tinted against
+     * a field and read as their mistake (7.1).
+     */
+    it.each([
+      ['a measure', 'measures'],
+      ['a grouping', 'groupings'],
+      ['both', 'measures and groupings'],
+    ])(
+      'reports %s the platform does not offer as not offered, blaming nobody',
+      async (_label, field) => {
+        server.use(
+          refusals.rejected('post', QUESTIONS, 'does not offer "x"', field),
+        );
+
+        await expect(
+          endpoints.askQuestion('t-acme', aBody),
+        ).rejects.toMatchObject({ refusal: { kind: 'not-offered' } });
+      },
+    );
+
+    it('reports a body the platform could not read as not offered too', async () => {
+      // The shape refusal names no field and sends its messages as a list.
+      // Either way the dashboard wrote the body, not the person.
+      server.use(
+        http.post(QUESTIONS, () =>
+          HttpResponse.json(
+            {
+              statusCode: 400,
+              message: ['measures must name at least one measure'],
+              error: 'Bad Request',
+            },
+            { status: 400 },
+          ),
+        ),
+      );
+
+      await expect(
+        endpoints.askQuestion('t-acme', aBody),
+      ).rejects.toMatchObject({ refusal: { kind: 'not-offered' } });
+    });
+
+    /**
+     * Too large (7.2) and too long carry sentences the platform wrote to be
+     * read — the first names its limit and both remedies — so they pass
+     * through as written.
+     */
+    it.each([
+      [
+        'an answer too large',
+        'question',
+        'question would answer with more than 5000 rows; narrow the period or ask for fewer groupings',
+      ],
+      [
+        'a period too long',
+        'period',
+        'period a period covers at most 366 days, got 2025-01-01 to 2026-06-30',
+      ],
+    ])(
+      'passes %s through with the platform’s own words',
+      async (_label, field, message) => {
+        server.use(refusals.rejected('post', QUESTIONS, message, field));
+
+        await expect(
+          endpoints.askQuestion('t-acme', aBody),
+        ).rejects.toMatchObject({
+          refusal: { kind: 'rejected', field, message },
+        });
+      },
+    );
+
+    it('leaves every other refusal as the request layer classified it', async () => {
+      server.use(refusals.paced('post', QUESTIONS, 42));
+
+      await expect(
+        endpoints.askQuestion('t-acme', aBody),
+      ).rejects.toMatchObject({
+        refusal: { kind: 'throttled', retryAfterSeconds: 42 },
+      });
+    });
+  });
+
   it('reports the refusal vocabulary rather than a status', async () => {
     server.use(refusals.wordless('get', '/api/tenants/t-acme/members'));
 
@@ -255,10 +394,28 @@ describe('a URL is written down once', () => {
     expect(naming).toEqual(['./endpoints.ts', './http.ts']);
   });
 
+  /**
+   * 10.1: analytics arrive through composed questions and nothing else. The
+   * platform's earlier movements route still exists, and a second analytical
+   * contract here would be two to keep in step — so no request-layer source
+   * may name it.
+   */
+  it('names no route to the platform’s earlier analytics', () => {
+    const naming = Object.entries(sources)
+      .filter(([path]) => !/\.test\.tsx?$/.test(path))
+      .filter(([path]) => /^\.\//.test(path))
+      .filter(([, source]) => /analytics\/movements/.test(code(source)))
+      .map(([path]) => path);
+
+    expect(naming).toEqual([]);
+  });
+
   it('has one function for every route the backend offers', () => {
     expect(Object.keys(endpoints).sort()).toEqual([
+      'askQuestion',
       'changeMemberRole',
       'fetchStanding',
+      'fetchVocabulary',
       'inviteMember',
       'listMembers',
       'refresh',
