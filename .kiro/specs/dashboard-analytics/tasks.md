@@ -195,7 +195,7 @@ the one the design proposed, field for field.
   - _Requirements: 7.1, 7.2, 9.1, 10.1_
   - _Boundary: Endpoints_
 
-- [ ] 3.2 Ask once per showing, per tenant, and never while held
+- [x] 3.2 Ask once per showing, per tenant, and never while held
   - The vocabulary is held for the session, keyed by tenant.
   - An answer is keyed by tenant and canonical question body:
     - it is never stale and discarded when its view leaves;
@@ -521,3 +521,27 @@ the one the design proposed, field for field.
   - `period` dropped from the readable list;
   - an unescaped tenant;
   - a movements route.
+- **3.2** — Three findings, each from a test that was wrong rather than code
+  that was.
+
+  **`gcTime: 0` collects on a later tick.** The first version unmounted and
+  remounted in the same tick, found the entry still waiting to be collected,
+  and read one request instead of two. The test now asserts the discard itself
+  — the cache entry gone — and only then remounts. That is the mechanism 2.7
+  rests on, rather than a race with the collector.
+
+  **A countdown tick is a React state update from an interval.** Advancing fake
+  timers outside `act` leaves the hook's rendered value one tick stale, so the
+  assertion read a number the hold no longer had. Every advance is wrapped in
+  `act`.
+
+  **A permanently paced route renews the hold.** The countdown test first
+  mounted a question against a route that refuses for the whole test: when the
+  wait ran out the query asked again, was paced again, and the countdown
+  restarted at three. The hook was right and the test was asking two things at
+  once. It now sets the hold directly; that a refusal sets it is the previous
+  test's claim.
+
+  Five probes bit: the tenant dropped from the answer key and from the
+  vocabulary key, the answer kept after its view leaves, a paced refusal that
+  sets no hold, and questions asked while held.
