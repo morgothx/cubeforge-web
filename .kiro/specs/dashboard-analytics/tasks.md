@@ -229,7 +229,7 @@ the one the design proposed, field for field.
   - _Requirements: 3.5, 4.1, 4.3, 4.4, 8.1_
   - _Boundary: AnswerTable, AnswerCurrency_
 
-- [ ] 4.2 (P) Draw a plan as bars, and nothing else
+- [x] 4.2 (P) Draw a plan as bars, and nothing else
   - One SVG rectangle per mark, each naming its row, with a title stating the
     category, the series and the value.
   - Bars sit on a zero baseline, and negative values go below it. The value
@@ -562,3 +562,18 @@ the one the design proposed, field for field.
   - provenance placed before the currency line;
   - provenance raised to a heading;
   - the moment rounded up rather than truncated.
+- **4.2** — **`Array.from`, never a spread, over a `NodeList`.** This
+  application's `lib` does not include `DOM.Iterable`, so `[...nodeList]` fails
+  the type check (TS2488) and degrades every element to `any`, which then trips
+  four `no-unsafe-*` lint rules. Worth inheriting by any later test that queries
+  the DOM directly.
+
+  **Series are told apart by weight, not by hue.** The design has one accent,
+  and six invented colours would be six nobody chose — with two of them
+  colliding in one of the two themes. Opacity steps survive both.
+
+  Seven probes bit: a plan drawn one mark short, marks that do not name their
+  row, a negative drawn upward, an axis rounded to a nicer number, an axis that
+  says nothing at all, the scrolling container removed, and a mark whose title
+  says only its number. The first two break several tests at once, which is
+  right: a dropped mark is also a missing title and a missing bar.
