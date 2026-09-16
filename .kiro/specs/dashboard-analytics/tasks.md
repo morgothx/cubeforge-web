@@ -217,7 +217,7 @@ the one the design proposed, field for field.
 
 ## 4. What an answer looks like
 
-- [ ] 4.1 (P) Show the rows as a table, and say how current they are
+- [x] 4.1 (P) Show the rows as a table, and say how current they are
   - The table has one row per answer row. Day headers name the calendar. A
     product or location shows its code and its current name. An absent value
     renders as an absence with an accessible name, never as `0`.
@@ -545,3 +545,20 @@ the one the design proposed, field for field.
   Five probes bit: the tenant dropped from the answer key and from the
   vocabulary key, the answer kept after its view leaves, a paced refusal that
   sets no hold, and questions asked while held.
+- **4.1** — **Two test files instead of one.** The design's file plan left
+  these components' coverage inside `AnswerView.test.tsx`, which belongs to
+  4.4 and does not exist yet; a task whose claims are only checked two tasks
+  later is a task nothing can verify at its own boundary. `AnswerTable.test.tsx`
+  and `AnswerCurrency.test.tsx` were added instead, the same deviation 3.2
+  made and for the same reason.
+
+  An absence is a **named** element (`aria-label="no value"`), not a bare dash:
+  a dash alone announces as nothing to a screen reader, and an empty cell reads
+  as data that failed to arrive. Seven probes bit:
+  - `null` drawn as zero;
+  - an absence with no name;
+  - a day header that does not name its calendar;
+  - the engine's timestamp shown instead of a day;
+  - provenance placed before the currency line;
+  - provenance raised to a heading;
+  - the moment rounded up rather than truncated.
