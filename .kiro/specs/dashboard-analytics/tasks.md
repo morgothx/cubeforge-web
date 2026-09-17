@@ -241,7 +241,7 @@ the one the design proposed, field for field.
   - _Requirements: 3.6, 8.1_
   - _Boundary: AnswerChart_
 
-- [ ] 4.3 (P) Compose a question, and choose a period
+- [x] 4.3 (P) Compose a question, and choose a period
   - The composer offers exactly the vocabulary's measures, groupings and
     moments, in its order and by its names. It checks the draft on every
     change, shows every problem, and disables asking while there is a problem
@@ -577,3 +577,26 @@ the one the design proposed, field for field.
   says nothing at all, the scrolling container removed, and a mark whose title
   says only its number. The first two break several tests at once, which is
   right: a dropped mark is also a missing title and a missing bar.
+- **4.3** — **The hold is said by `RefusalNotice`, not by the composer.** A
+  wait is a refusal the platform already issued, so the composer builds a
+  `throttled` refusal carrying the seconds and hands it over. Writing the
+  sentence inline would have been a second voice for the same event, and the
+  scan in `refusals.test.tsx` — only `RefusalNotice` may call
+  `describeRefusal` — exists to stop exactly that.
+
+  **The picker reuses `checkComposition` rather than checking days itself.** It
+  needs a whole draft to do so, and it fills the measure from the vocabulary's
+  own first entry instead of a name written here: the period stays the only
+  thing that can be wrong, and no vocabulary name enters the module (the scan
+  6.1 will run allows them only in `overview.ts`). Two day checks would be two
+  answers to one question, and the looser one would win somewhere.
+
+  **Plain text inputs, not `<input type="date">`.** A native date control hands
+  back a day in the viewer's own zone and hides the `YYYY-MM-DD` shape that the
+  refusal for a non-day names. Days here are the platform's, so the field shows
+  the platform's spelling.
+
+  Six probes bit: the hold dropped from the ask button's guard, a problem
+  dropped from it, the problems swallowed in each component, the measures
+  hard-coded instead of read from the vocabulary, and the picker's button left
+  enabled for a bad period.
