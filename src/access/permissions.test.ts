@@ -21,10 +21,11 @@ import {
 describe('what a role may do in a tenant', () => {
   /**
    * The backend's own declarations, transcribed from
-   * `tenant-members.controller.ts` on 2026-08-18. Every difference between the
-   * roles below must exist because a guard over there makes it exist — that is
-   * what stops this table from drifting into a second, quieter authorization
-   * model.
+   * `tenant-members.controller.ts` on 2026-08-18, and the analytics routes' from
+   * `ASK_MODELLED_QUESTION_ROLES` (which the vocabulary route reuses) on
+   * 2026-09-17. Every difference between the roles below must exist because a
+   * guard over there makes it exist — that is what stops this table from
+   * drifting into a second, quieter authorization model.
    */
   const AS_THE_BACKEND_DECLARES: Readonly<Record<Permission, readonly Role[]>> =
     {
@@ -32,6 +33,7 @@ describe('what a role may do in a tenant', () => {
       'members:invite': ['admin'],
       'members:change-role': ['admin'],
       'members:revoke': ['admin'],
+      'analytics:read': ['admin', 'editor', 'viewer'],
     };
 
   const EVERY_ROLE: readonly Role[] = ['admin', 'editor', 'viewer'];
@@ -50,6 +52,12 @@ describe('what a role may do in a tenant', () => {
   it('lets every role read the listing', () => {
     for (const role of EVERY_ROLE) {
       expect(may(role, 'members:read')).toBe(true);
+    }
+  });
+
+  it('lets every role read the analytics (1.1)', () => {
+    for (const role of EVERY_ROLE) {
+      expect(may(role, 'analytics:read')).toBe(true);
     }
   });
 

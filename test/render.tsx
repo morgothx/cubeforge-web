@@ -6,7 +6,7 @@ import {
   type RenderResult,
 } from '@testing-library/react';
 import { StrictMode, type ReactElement } from 'react';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, parsePath } from 'react-router';
 import { REFRESH_STORAGE_KEY } from '../src/api/session';
 import { createQueryClient } from '../src/queries/client';
 import { SessionProvider } from '../src/session/SessionProvider';
@@ -28,6 +28,10 @@ export * from '@testing-library/react';
  * `MemoryRouter` rather than the browser router the application mounts, because
  * a test needs to start at an address and there is no history to push. That is
  * the only difference from production, and it is the router's whole purpose.
+ *
+ * The address is parsed rather than used as a path: `/t/x/analytics/explore?…`
+ * placed whole into `pathname` leaves the query in the path, where no screen
+ * reads it and every test of a query-bearing address passes for nothing.
  */
 export function renderAt(
   subject: ReactElement,
@@ -38,7 +42,9 @@ export function renderAt(
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter
-        initialEntries={[{ pathname: options.at ?? '/', state: options.state }]}
+        initialEntries={[
+          { ...parsePath(options.at ?? '/'), state: options.state },
+        ]}
       >
         {subject}
       </MemoryRouter>

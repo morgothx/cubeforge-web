@@ -20,6 +20,7 @@ export const PERMISSIONS = [
   'members:invite',
   'members:change-role',
   'members:revoke',
+  'analytics:read',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -37,7 +38,9 @@ export type Permission = (typeof PERMISSIONS)[number];
 export type RoleAdmission = Readonly<Record<Permission, readonly Role[]>>;
 
 /**
- * Every entry mirrors a declaration on `tenant-members.controller.ts`. A
+ * Every entry mirrors a declaration in `cubeforge-api`: the members entries
+ * `tenant-members.controller.ts`, and `analytics:read` the roles both analytics
+ * routes admit (`ASK_MODELLED_QUESTION_ROLES`, reused by the vocabulary route). A
  * difference between roles here that no guard makes over there would be a
  * second authorization model, quieter than the first and answerable to nobody.
  */
@@ -49,6 +52,9 @@ const ADMITTED: RoleAdmission = {
   'members:invite': ['admin'],
   'members:change-role': ['admin'],
   'members:revoke': ['admin'],
+  // Every member may ask the platform's questions and read its vocabulary. The
+  // roles differ in what they may change, and asking changes nothing.
+  'analytics:read': ['admin', 'editor', 'viewer'],
 };
 
 export function may(role: Role, permission: Permission): boolean {

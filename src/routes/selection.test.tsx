@@ -1,4 +1,6 @@
 import { http, HttpResponse } from 'msw';
+import { useLocation } from 'react-router';
+import { AppLayout } from '../components/AppLayout';
 import { AppRoutes } from './AppRoutes';
 import { TENANT_STORAGE_KEY, lastTenant } from './last-tenant';
 import { backend } from '../../test/handlers';
@@ -170,5 +172,77 @@ describe('choosing among several', () => {
     await screen.findByRole('button', { name: /sign out/i });
     // An empty control invites a choice that does not exist (4.3).
     expect(screen.queryByRole('navigation', { name: /tenant/i })).toBeNull();
+  });
+});
+
+/**
+ * The address being served, path and query apart.
+ *
+ * Apart on purpose: joined, a query mistakenly kept inside the path reads
+ * exactly like one kept in the query, and the switch below would pass while the
+ * explorer — which reads the query — found nothing.
+ */
+function Where() {
+  const { pathname, search } = useLocation();
+  return (
+    <>
+      <p>at {pathname}</p>
+      <p>asking {search}</p>
+    </>
+  );
+}
+
+/**
+ * 1.2: switching tenant keeps the place. Nothing in a section or a composition
+ * belongs to a tenant, so somebody comparing two tenants' answers to the same
+ * question switches and reads, rather than switching and composing it again.
+ */
+describe('switching tenant from inside a section', () => {
+  const QUERY =
+    '?measures=net_quantity&groupings=kind&from=2026-08-12&to=2026-09-10&by=recorded';
+
+  it('lands on the other tenant’s same section, with the query intact', async () => {
+    renderSignedIn(
+      <AppLayout>
+        <Where />
+      </AppLayout>,
+      { at: `/t/t-acme/analytics/explore${QUERY}` },
+    );
+
+    await findActingIn('Acme');
+    // The address really carries the query before the switch — otherwise the
+    // assertion below could pass on a query that was never there to lose.
+    expect(
+      screen.getByText('at /t/t-acme/analytics/explore'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(`asking ${QUERY}`)).toBeInTheDocument();
+
+    within(switcher())
+      .getByRole('link', { name: /^Globex/ })
+      .click();
+
+    expect(
+      await screen.findByText('at /t/t-globex/analytics/explore'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(`asking ${QUERY}`)).toBeInTheDocument();
+    expect(await findActingIn('Globex')).toBeInTheDocument();
+  });
+
+  it('still lands on the members listing from the members listing', async () => {
+    renderSignedIn(
+      <AppLayout>
+        <Where />
+      </AppLayout>,
+      { at: '/t/t-acme/members' },
+    );
+
+    await findActingIn('Acme');
+    within(switcher())
+      .getByRole('link', { name: /^Globex/ })
+      .click();
+
+    expect(
+      await screen.findByText('at /t/t-globex/members'),
+    ).toBeInTheDocument();
   });
 });

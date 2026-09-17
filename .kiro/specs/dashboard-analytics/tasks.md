@@ -279,22 +279,18 @@ the one the design proposed, field for field.
 
 ## 5. The screens, the addresses and the navigation
 
-- [ ] 5.1 Offer the analytics to every role, and keep the section when the
+- [x] 5.1 Admit every role to the analytics, and keep the section when the
       tenant changes
   - Every tenant role may read analytics, and the permission table says so.
-  - The navigation's analytics row becomes a link. It is not an exact match, so
-    it stays current in the explorer.
   - The switcher sends each tenant to the same section and the same query.
-  - The shell's tests that held the "Soon" row inert are rewritten to hold it
-    to being a link for every role. The shell's design marks its own 10.3 as
-    superseded by this feature.
   - Done when:
     - the permission table test covers the new permission;
-    - the navigation test shows the link for admin, editor and viewer;
     - switching from one tenant's explorer address lands on the other's with the
       query intact.
-  - _Requirements: 1.1, 1.2, 9.4_
-  - _Boundary: Integration — permissions, routing primitives, SectionNav, AppLayout, TenantSwitcher_
+  - _Requirements: 1.1, 1.2_
+  - _Boundary: Integration — permissions, routing primitives, TenantSwitcher_
+  - _Replanned: the navigation link moved to 5.2. Made here, it pointed at an
+    address only 5.2 serves, and `served-addresses` refused the dead link._
 
 - [ ] 5.2 Serve the overview
   - The overview address sits inside the tenant resolution. It reads its period
@@ -303,16 +299,24 @@ the one the design proposed, field for field.
   - A chosen period is written into the address. An analytics sub-navigation
     offers Overview and Explore. The served-addresses commitment gains the
     address.
+  - The navigation's analytics row becomes a link, shown when the role may read
+    analytics. It is not an exact match, so it stays current in the explorer.
+    It arrives with the address it leads to, never before it (moved from 5.1).
+  - The shell's tests that held the "Soon" row inert are rewritten to hold it
+    to being a link for every role. The shell's design marks its own 10.3 as
+    superseded by this feature.
   - Done when the screen test shows:
     - both answers render with no interaction;
     - exactly two question requests are made per showing, and re-rendering,
       refocusing and re-choosing the same period add none, while leaving and
       returning adds two;
     - a chosen period reaches the address and both requests;
-    - the on-hand note appears whenever on hand does.
-  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
+    - the on-hand note appears whenever on hand does;
+    - the navigation shows the analytics link for admin, editor and viewer, and
+      `served-addresses` finds no dead link.
+  - _Requirements: 1.1, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 9.4_
   - _Depends: 2.6, 4.3, 4.4, 5.1_
-  - _Boundary: Integration — AnalyticsOverviewScreen, AnalyticsNav, route table_
+  - _Boundary: Integration — AnalyticsOverviewScreen, AnalyticsNav, route table, SectionNav, AppLayout_
 
 - [ ] 5.3 Serve the explorer
   - The explorer address reads the composition with the address codec and
@@ -635,3 +639,28 @@ the one the design proposed, field for field.
   waiting notice silenced, the unreadable sentence swapped, a table drawn for a
   never-exported tenant, the cumulative note dropped, the currency removed from
   the answered state, and only the first problem shown.
+- **5.1** — **Replanned mid-task: the analytics link moved to 5.2.** Made here,
+  the row pointed at `/t/:tenantId/analytics`, which only 5.2 serves, and
+  `served-addresses` — the guard against dead links — refused it. 5.2 depends
+  on 5.1, so no order kept every commit green with the link in 5.1. The guard
+  was right and was not weakened: a link arrives with the address it leads to.
+  Camilo chose the move. 5.2 now carries the link, the rewrite of the three
+  "Soon" tests and the shell's 10.3 annotation.
+
+  **`renderAt` put the whole address into `pathname`.** A query written into a
+  test's address therefore stayed inside the path, where no screen reads it.
+  The address is now parsed with `parsePath`. The switching test renders the
+  path and the query **separately**, because joined they read identically
+  whether the query was in the path or in the query — the first draft of that
+  test was blind to exactly the bug it needed to catch. A probe restoring the
+  old harness now fails that test and only that one.
+
+  **`analytics:read` is transcribed, not decided.** It mirrors
+  `ASK_MODELLED_QUESTION_ROLES` in `cubeforge-api`, which the vocabulary route
+  reuses.
+
+  Five probes bit: the permission narrowed to administrators, the query dropped
+  on a switch, the section dropped on a switch, every tenant-looking segment
+  replaced rather than the first, and the harness reverted. One probe first
+  failed to bite, and the blind one was the probe: a greedy match that
+  backtracks to the same segment is the original, not a mutation of it.

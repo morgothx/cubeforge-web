@@ -1,5 +1,6 @@
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import type { TenantMembership } from '../api/types';
+import { sameSectionIn } from '../routes/tenant-address';
 
 /**
  * Which tenant the person is acting in, and how to act in another.
@@ -20,6 +21,11 @@ import type { TenantMembership } from '../api/types';
  * and a frame with no navigation in it is what makes a mistyped address feel
  * like a wall.
  *
+ * Each row leads to **the same place in that tenant** — the same section and
+ * the same query (dashboard-analytics 1.2). Somebody comparing two tenants'
+ * answers to one question switches and reads, rather than switching and
+ * composing it again.
+ *
  * The rows share edges — `border-t-0` on every one after the first — so the
  * stack reads as one object rather than as separate buttons.
  */
@@ -33,6 +39,8 @@ export function TenantSwitcher({
   memberships: readonly TenantMembership[];
   selected?: TenantMembership | undefined;
 }) {
+  const { pathname, search } = useLocation();
+
   return (
     <nav className="flex flex-col gap-2" aria-label="Tenant">
       <h2 className="font-heading text-kicker font-semibold uppercase tracking-[0.14em] opacity-55">
@@ -59,7 +67,7 @@ export function TenantSwitcher({
                 </span>
               ) : (
                 <Link
-                  to={`/t/${membership.tenantId}/members`}
+                  to={sameSectionIn(membership.tenantId, pathname, search)}
                   className={`${ROW} hover:bg-base-content/7`}
                 >
                   {membership.tenantName}
