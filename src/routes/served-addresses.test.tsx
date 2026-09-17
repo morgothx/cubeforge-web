@@ -20,7 +20,14 @@ import { SessionProvider } from '../session/SessionProvider';
  */
 
 /** Every address the feature committed to serving. */
-const SERVED = ['*', '/', '/no-tenants', '/sign-in', '/t/:tenantId/members'];
+const SERVED = [
+  '*',
+  '/',
+  '/no-tenants',
+  '/sign-in',
+  '/t/:tenantId/analytics',
+  '/t/:tenantId/members',
+];
 
 const sources = import.meta.glob('../**/*.{ts,tsx}', {
   query: '?raw',

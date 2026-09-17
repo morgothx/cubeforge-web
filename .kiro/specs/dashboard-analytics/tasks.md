@@ -292,13 +292,14 @@ the one the design proposed, field for field.
   - _Replanned: the navigation link moved to 5.2. Made here, it pointed at an
     address only 5.2 serves, and `served-addresses` refused the dead link._
 
-- [ ] 5.2 Serve the overview
+- [x] 5.2 Serve the overview
   - The overview address sits inside the tenant resolution. It reads its period
     from the address, or the default, joins it to the two fixed compositions,
     and renders one answer view each.
-  - A chosen period is written into the address. An analytics sub-navigation
-    offers Overview and Explore. The served-addresses commitment gains the
-    address.
+  - A chosen period is written into the address. The served-addresses
+    commitment gains the address.
+  - _Replanned: the analytics sub-navigation moved to 5.3. Its Explore entry
+    leads to the address 5.3 serves, and a link arrives with its address._
   - The navigation's analytics row becomes a link, shown when the role may read
     analytics. It is not an exact match, so it stays current in the explorer.
     It arrives with the address it leads to, never before it (moved from 5.1).
@@ -316,13 +317,15 @@ the one the design proposed, field for field.
       `served-addresses` finds no dead link.
   - _Requirements: 1.1, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 9.4_
   - _Depends: 2.6, 4.3, 4.4, 5.1_
-  - _Boundary: Integration — AnalyticsOverviewScreen, AnalyticsNav, route table, SectionNav, AppLayout_
+  - _Boundary: Integration — AnalyticsOverviewScreen, route table, SectionNav, AppLayout_
 
 - [ ] 5.3 Serve the explorer
   - The explorer address reads the composition with the address codec and
     checks it. A wrong address shows its problems and asks nothing. Asking in
     the composer pushes a new address, which is the only moment the draft
     becomes the composition. The served-addresses commitment gains the address.
+  - An analytics sub-navigation offers Overview and Explore on both screens, as
+    links that keep the tenant (moved from 5.2, with the address it leads to).
   - Done when the screen test shows:
     - the offered choices are exactly the vocabulary's;
     - no measure and a bad period ask nothing, counted rather than inferred;
@@ -333,7 +336,7 @@ the one the design proposed, field for field.
       passes.
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.8, 3.9, 6.3, 7.3_
   - _Depends: 4.3, 4.4, 5.2_
-  - _Boundary: Integration — AnalyticsExplorerScreen, route table_
+  - _Boundary: Integration — AnalyticsExplorerScreen, AnalyticsNav, route table_
 
 - [ ] 5.4 Prove the analytics follow the tenant, and nothing else
   - A routing suite covers role reach, and tenant switching from the explorer.
@@ -664,3 +667,31 @@ the one the design proposed, field for field.
   replaced rather than the first, and the harness reverted. One probe first
   failed to bite, and the blind one was the probe: a greedy match that
   backtracks to the same segment is the original, not a mutation of it.
+- **5.2** — **The sub-navigation moved to 5.3**, by the rule 5.1 set: its
+  Explore entry leads to the address 5.3 serves. The link and the "Soon" rewrite
+  moved in from 5.1 arrived here with the overview's address, and
+  `served-addresses` is green with both.
+
+  **The period lives in the address, not in the screen.** An address without
+  one covers the default thirty days; a chosen period is written into it. The
+  picker is keyed on the period so that the back button resets its fields to
+  what is shown rather than to what was last typed.
+
+  **Every request count is taken after both answers are on screen.** The
+  harness counts a request that failed as readily as one that succeeded, so an
+  answer on screen is what makes a count mean "asked and answered". A spy
+  handler records each body and returns nothing, so the route's own handler
+  still answers — it observes rather than replaces. Only `Date` is faked;
+  React Query keeps real timers.
+
+  Re-rendering is exercised by choosing the period already shown: the address
+  changes, the screen re-renders, and the count stays at two. A test that
+  looped over recorded bodies was also asserted to have recorded two — a loop
+  over nothing passes.
+
+  Eight probes bit, each in the test it belongs to: the address's period
+  ignored, a chosen period not written, the default measured from the wrong
+  day, on hand not asked, a refocus asking again (only the 2.7 count failed),
+  an answer surviving its view leaving (only the leave-and-return test failed),
+  the analytics link made an exact match, and the link offered to
+  administrators alone.

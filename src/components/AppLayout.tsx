@@ -55,7 +55,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             />
           )}
           {selected !== undefined && (
-            <SectionNav tenantId={selected.tenantId} />
+            <SectionNav tenantId={selected.tenantId} role={selected.role} />
           )}
           <div className="mt-auto flex flex-col items-stretch gap-2 border-t border-divider pt-4">
             {/*

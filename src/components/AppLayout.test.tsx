@@ -4,7 +4,7 @@ import { backend } from '../../test/handlers';
 import { fireEvent, renderSignedIn, screen, within } from '../../test/render';
 import { server } from '../../test/server';
 import { session } from '../api/session';
-import type { CallerStanding } from '../api/types';
+import type { CallerStanding, Role } from '../api/types';
 import { AppLayout } from './AppLayout';
 
 /**
@@ -224,48 +224,56 @@ describe('the side panel', () => {
 });
 
 /**
- * Analytics, marked as a hole rather than hidden (task 2.2).
+ * Analytics, offered to every role (dashboard-analytics 1.1).
  *
- * The product's whole point is analytics and it does not have them yet. Two
- * dishonest options were available: leave the panel silent, so somebody
- * evaluating this reads "a members list" and stops; or draw a chart of invented
- * numbers. The third is to name the room and say it is not built — which is
- * only honest if pressing it does nothing at all, because a destination that
- * greets you with an empty page is the same lie told slower.
+ * Until that feature it was a named hole — a row marked "Soon" that nothing
+ * could press, held there by three tests. The room is built now, so the same
+ * three places hold the opposite: it is a link, for each role the platform
+ * admits, and it stays current anywhere inside the section, the explorer
+ * included. The shell's own 10.3 is marked superseded in its design.
  */
+function actingAs(role: Role) {
+  standingOf({
+    memberships: [{ tenantId: 't-acme', tenantName: 'Acme', role }],
+  });
+}
+
+function analyticsLink(): HTMLElement {
+  const sections = screen.getByRole('navigation', { name: /section/i });
+  return within(sections).getByRole('link', { name: /analytics/i });
+}
+
 describe('the analytics section', () => {
-  it('names where the analytics will live', async () => {
-    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
+  it.each(['admin', 'editor', 'viewer'] as const)(
+    'offers it to an %s as a link into the tenant',
+    async (role) => {
+      actingAs(role);
+      renderSignedIn(<AppLayout>a page</AppLayout>, {
+        at: '/t/t-acme/members',
+      });
+
+      await screen.findByText('caller@example.com');
+
+      expect(analyticsLink()).toHaveAttribute('href', '/t/t-acme/analytics');
+      expect(screen.queryByText(/soon/i)).toBeNull();
+    },
+  );
+
+  /**
+   * Not an exact match: the explorer is inside the section, and a panel that
+   * stopped marking Analytics there would say the person had left it.
+   */
+  it('stays current inside the section, the explorer included', async () => {
+    renderSignedIn(<AppLayout>a page</AppLayout>, {
+      at: '/t/t-acme/analytics/explore',
+    });
 
     await screen.findByText('caller@example.com');
-    const sections = screen.getByRole('navigation', { name: /section/i });
 
-    expect(within(sections).getByText(/analytics/i)).toBeInTheDocument();
-    // And says so in the panel rather than in a tooltip somebody has to find.
-    expect(within(sections).getByText(/soon/i)).toBeInTheDocument();
+    expect(analyticsLink()).toHaveAttribute('aria-current', 'page');
   });
 
-  it('offers it as nothing that can be pressed', async () => {
-    renderSignedIn(<AppLayout>a page</AppLayout>, { at: '/t/t-acme/members' });
-
-    await screen.findByText('caller@example.com');
-    const sections = screen.getByRole('navigation', { name: /section/i });
-    const analytics = within(sections).getByText(/analytics/i);
-
-    // The claim is about what it is *not*, so it is made twice: this element
-    // is not inside a control, and the section list offers exactly one
-    // destination. Either alone passes an implementation the other catches.
-    expect(analytics.closest('a')).toBeNull();
-    expect(analytics.closest('button')).toBeNull();
-    expect(
-      within(sections)
-        .getAllByRole('link')
-        .map((link) => link.textContent),
-    ).toEqual(['Members']);
-    expect(within(sections).queryAllByRole('button')).toEqual([]);
-  });
-
-  it('sends nobody anywhere when it is pressed anyway', async () => {
+  it('takes the person there when it is pressed', async () => {
     renderSignedIn(
       <AppLayout>
         <Where />
@@ -274,12 +282,10 @@ describe('the analytics section', () => {
     );
 
     await screen.findByText('caller@example.com');
-    const analytics = screen.getByText(/analytics/i);
-    fireEvent.click(analytics);
+    fireEvent.click(analyticsLink());
 
-    // Not a redundant test. `closest('a')` proves the markup; this proves the
-    // behaviour, and a handler quietly added to the row would be invisible to
-    // the first and caught here.
-    expect(screen.getByText('at /t/t-acme/members')).toBeInTheDocument();
+    expect(
+      await screen.findByText('at /t/t-acme/analytics'),
+    ).toBeInTheDocument();
   });
 });

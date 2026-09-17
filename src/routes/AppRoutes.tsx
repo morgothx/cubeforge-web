@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
 import { useStanding } from '../queries/standing';
+import { AnalyticsOverviewScreen } from '../screens/AnalyticsOverviewScreen';
 import { NoTenantsScreen } from '../screens/NoTenantsScreen';
 import { MembersScreen } from '../screens/MembersScreen';
 import { SignInScreen } from '../screens/SignInScreen';
@@ -41,6 +42,10 @@ export function AppRoutes() {
         <Route path="/" element={<ChooseTenant />} />
         <Route element={<TenantRoute />}>
           <Route path="/t/:tenantId/members" element={<MembersScreen />} />
+          <Route
+            path="/t/:tenantId/analytics"
+            element={<AnalyticsOverviewScreen />}
+          />
         </Route>
         <Route path="/no-tenants" element={<NoTenantsScreen />} />
       </Route>

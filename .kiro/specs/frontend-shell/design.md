@@ -721,7 +721,7 @@ observing that nothing went wrong.
 | 9.4 | `Refusal.unavailable` is a first-class kind, not an error case |
 | 10.1 | No operator route, screen or endpoint exists |
 | 10.2 | No API-key route, screen or endpoint exists |
-| 10.3 | No metric, chart or analytical query exists |
+| 10.3 | No metric, chart or analytical query exists — **superseded by `dashboard-analytics`** (1.1, 9.4): the Analytics row is a link for every role, and the analytics routes exist. Recorded here rather than by rewriting a requirement that was approved and implemented as it stood. |
 | 10.4 | No setup-token route, screen or endpoint exists |
 
 ---
