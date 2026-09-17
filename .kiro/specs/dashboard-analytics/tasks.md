@@ -256,7 +256,7 @@ the one the design proposed, field for field.
   - _Requirements: 2.6, 3.1, 3.2, 3.3, 3.4_
   - _Boundary: Composer, PeriodPicker_
 
-- [ ] 4.4 Render one composition in every state it can reach
+- [x] 4.4 Render one composition in every state it can reach
   - It asks through the answer query and renders the states in the design's
     diagram:
     - problems, in the wording's sentences;
@@ -600,3 +600,38 @@ the one the design proposed, field for field.
   dropped from it, the problems swallowed in each component, the measures
   hard-coded instead of read from the vocabulary, and the picker's button left
   enabled for a bad period.
+- **4.4** — **The eight states are ordered, not merely listed.** Several can be
+  true at once and the wrong one would win: problems and a hold both come
+  before any question is asked; a refusal comes before waiting, because a
+  failed query is not pending; never-exported comes before anything is read;
+  and unreadable comes before empty. That last order is the one that matters
+  most — an answer whose figures could not be read is this dashboard's fault,
+  and rendering it as "nothing was recorded" would publish that fault as a fact
+  about the tenant's stock.
+
+  **Never-exported does not reuse `Empty`.** That shell component announces
+  "Answered, and empty", which is the quiet period 5.3 and 5.4 exist to keep it
+  from being confused with. The empty state does use it, which is what the
+  component is for.
+
+  **The retry is `RefusalNotice`'s decision, not this view's.** `onRetry` is
+  handed over unconditionally and that component shows the button for
+  `unreachable` alone. Deciding it here as well would be a second opinion on
+  one question, and the two would agree until one was edited.
+
+  **Sentences are asserted through `wording.ts`, never as literals.** This
+  component's claim is that it says what that module says; whether the sentence
+  is right is that module's own claim, tested in its own file. Copies in a
+  second file make one wording change fail twice and invite a stale one to
+  survive.
+
+  Two defects were caught in the test before the component existed: a row type
+  written as a conditional over a union (`ModelledAnswer extends { rows: infer
+  R }`), which does not distribute and silently resolves to `never`; and
+  `FROM as never` to fabricate a branded `Day`, a cast that switches off the
+  exact type that exists to prevent it. Days are now built with `dayFrom`.
+
+  Eight probes bit: the hold dropped from the guard, the retry withheld, the
+  waiting notice silenced, the unreadable sentence swapped, a table drawn for a
+  never-exported tenant, the cumulative note dropped, the currency removed from
+  the answered state, and only the first problem shown.
