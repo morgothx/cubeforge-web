@@ -26,6 +26,7 @@ const SERVED = [
   '/no-tenants',
   '/sign-in',
   '/t/:tenantId/analytics',
+  '/t/:tenantId/analytics/explore',
   '/t/:tenantId/members',
 ];
 

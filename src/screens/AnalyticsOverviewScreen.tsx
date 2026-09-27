@@ -6,6 +6,7 @@ import {
   type FixedComposition,
 } from '../analytics/overview';
 import type { Vocabulary } from '../api/types';
+import { AnalyticsNav } from '../components/analytics/AnalyticsNav';
 import { AnswerView } from '../components/analytics/AnswerView';
 import { PeriodPicker } from '../components/analytics/PeriodPicker';
 import { RefusalNotice } from '../components/RefusalNotice';
@@ -37,6 +38,7 @@ export function AnalyticsOverviewScreen() {
   return (
     <section className="flex flex-col gap-6">
       <h1 className="text-screen">Analytics</h1>
+      <AnalyticsNav tenantId={tenantId} />
       {vocabulary.isError ? (
         <RefusalNotice
           refusal={vocabulary.error.refusal}

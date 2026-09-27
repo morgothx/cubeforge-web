@@ -319,7 +319,7 @@ the one the design proposed, field for field.
   - _Depends: 2.6, 4.3, 4.4, 5.1_
   - _Boundary: Integration — AnalyticsOverviewScreen, route table, SectionNav, AppLayout_
 
-- [ ] 5.3 Serve the explorer
+- [x] 5.3 Serve the explorer
   - The explorer address reads the composition with the address codec and
     checks it. A wrong address shows its problems and asks nothing. Asking in
     the composer pushes a new address, which is the only moment the draft
@@ -695,3 +695,38 @@ the one the design proposed, field for field.
   an answer surviving its view leaving (only the leave-and-return test failed),
   the analytics link made an exact match, and the link offered to
   administrators alone.
+- **5.3** — **One voice per problem.** The answer view is rendered only for a
+  composition that can be asked, so a wrong address is reported by the composer
+  alone — it is checking the same draft, read from that address, against the
+  same vocabulary. Rendering both would have printed every problem twice.
+
+  **The wait is still said twice**, and deliberately for now: the composer says
+  it beside the disabled Ask button, and the answer view says it where the
+  answer would be, because it reads the hold on its own account (4.4). Worth
+  revisiting if it reads as noise on the real screen.
+
+  **Three test-side findings, none of them a code fault.**
+  - `role="status"` is worn by two different waits on this screen — the
+    vocabulary's and the answer's. Awaiting the role alone resolved on the
+    vocabulary's, before the composer existed. The test now waits for the
+    composer first.
+  - `receipt` appears twice in a drawn answer: the table's cell and the chart's
+    axis label. `findAllByText`, not `findByText`.
+  - **A probe that did not bite found a real gap in the test.** Handing
+    `held={0}` to the composer broke nothing, because the answer view says the
+    wait anyway and the query is hold-gated either way — so the sentence was on
+    screen and the count was right while the Ask button invited a press that did
+    nothing. The test now asserts the button is disabled while held and enabled
+    once the wait passes, and the probe bites.
+
+  **A Python edit script asserts before it writes.** One run raised on its
+  second assertion after the first `replace` had already run in memory, so
+  neither edit reached disk — and the probe that followed reported "did not
+  bite" for a test that had never been changed. Apply and write one edit at a
+  time.
+
+  Seven probes bit: the answer view rendered for an unaskable composition,
+  asking not writing the address, the draft not read from the address, the hold
+  not handed to the composer, the explorer entry not an exact match, the
+  sub-navigation losing the tenant, and the explorer address served without
+  being committed to.
