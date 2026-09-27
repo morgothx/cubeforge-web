@@ -338,7 +338,7 @@ the one the design proposed, field for field.
   - _Depends: 4.3, 4.4, 5.2_
   - _Boundary: Integration — AnalyticsExplorerScreen, AnalyticsNav, route table_
 
-- [ ] 5.4 Prove the analytics follow the tenant, and nothing else
+- [x] 5.4 Prove the analytics follow the tenant, and nothing else
   - A routing suite covers role reach, and tenant switching from the explorer.
   - The late answer:
     - tenant A's question is delayed;
@@ -730,3 +730,27 @@ the one the design proposed, field for field.
   not handed to the composer, the explorer entry not an exact match, the
   sub-navigation losing the tenant, and the explorer address served without
   being committed to.
+- **5.4** — **"Never on screen" is a claim about every moment**, so the late
+  answer is watched with a `MutationObserver` running for the whole test rather
+  than asserted at the end. An assertion taken at the end passes just as
+  happily on an answer that appeared, was read, and was replaced a tick later,
+  which is the entire bug.
+
+  **The watcher has a positive control.** A probe that lets Acme's answer
+  resolve immediately — so the label really is drawn — turns the test red. A
+  watcher that observed nothing would have made 1.3 pass for the worst possible
+  reason, and nothing else in the suite would have noticed.
+
+  **The task's own probe bites:** taking the tenant out of `keys.answer` turns
+  the late-answer test red. With one key for both tenants, the pending question
+  and the new screen's question are the same query, so Acme's answer lands
+  exactly where Globex's belongs.
+
+  A `gcTime` probe was run here too and did **not** bite, correctly: this suite
+  makes no claim about leaving and returning. That claim lives in the overview's
+  suite, where the same probe bit in 5.2.
+
+  **`findAllBy*` resolves on the first match.** The role-reach test awaited all
+  tables and asserted two, which raced the overview's second answer; it now
+  waits for both. Worth inheriting by any test asserting a count of things that
+  arrive separately.
