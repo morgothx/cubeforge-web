@@ -43,7 +43,7 @@ function planOf(
 
 const SIGNED = [
   { kind: 'receipt', net_quantity: '10' },
-  { kind: 'issue', net_quantity: '-4' },
+  { kind: 'sale', net_quantity: '-4' },
 ];
 
 /**
@@ -84,7 +84,7 @@ describe('a plan drawn as bars', () => {
       (title) => title.textContent,
     );
 
-    expect(titles).toContain('issue · net_quantity: -4');
+    expect(titles).toContain('sale · net_quantity: -4');
     expect(titles).toContain('receipt · net_quantity: 10');
   });
 

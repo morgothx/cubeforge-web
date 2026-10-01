@@ -40,7 +40,7 @@ describe('an answer as a table', () => {
         table={tableOf(
           [
             { kind: 'receipt', net_quantity: '10' },
-            { kind: 'issue', net_quantity: '-4' },
+            { kind: 'sale', net_quantity: '-4' },
           ],
           ['net_quantity'],
           ['kind'],
@@ -138,7 +138,7 @@ describe('an answer as a table', () => {
         table={tableOf(
           [
             { kind: 'receipt', net_quantity: '10' },
-            { kind: 'issue', net_quantity: '-4' },
+            { kind: 'sale', net_quantity: '-4' },
           ],
           ['net_quantity'],
           ['kind'],

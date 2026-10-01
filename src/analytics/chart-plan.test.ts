@@ -56,7 +56,7 @@ describe('whether an answer may be drawn', () => {
       tableOf(
         [
           { kind: 'receipt', net_quantity: '10', movement_count: '2' },
-          { kind: 'issue', net_quantity: '-4', movement_count: '1' },
+          { kind: 'sale', net_quantity: '-4', movement_count: '1' },
         ],
         ['net_quantity', 'movement_count'],
         ['kind'],
@@ -70,10 +70,12 @@ describe('whether an answer may be drawn', () => {
       'movement_count',
     ]);
     const [net] = charting.charts;
-    expect(net?.categories).toEqual(['issue', 'receipt']);
+    // Alphabetical, and `receipt` now precedes `sale` where it followed the
+    // `issue` the fixtures used before 6.2 measured the platform's real kinds.
+    expect(net?.categories).toEqual(['receipt', 'sale']);
     expect(net?.marks).toEqual([
-      { row: 0, category: 0, series: 0, value: -4 },
-      { row: 1, category: 1, series: 0, value: 10 },
+      { row: 0, category: 0, series: 0, value: 10 },
+      { row: 1, category: 1, series: 0, value: -4 },
     ]);
     // Only the figures the answer returned. Zero is the baseline the chart
     // draws, not a value it claims was measured.
@@ -85,7 +87,7 @@ describe('whether an answer may be drawn', () => {
       tableOf(
         [
           { recorded_day: aDay(0), kind: 'receipt', net_quantity: '10' },
-          { recorded_day: aDay(0), kind: 'issue', net_quantity: '-4' },
+          { recorded_day: aDay(0), kind: 'sale', net_quantity: '-4' },
           { recorded_day: aDay(1), kind: 'receipt', net_quantity: '6' },
         ],
         ['net_quantity'],
@@ -100,7 +102,7 @@ describe('whether an answer may be drawn', () => {
       aDay(0).slice(0, 10),
       aDay(1).slice(0, 10),
     ]);
-    expect(chart?.series).toEqual(['issue', 'receipt']);
+    expect(chart?.series).toEqual(['receipt', 'sale']);
     expect(chart?.marks).toHaveLength(3);
     // A day nobody recorded anything on is not a category, and certainly not a
     // zero: filling it would draw a figure the platform never sent (8.1).
@@ -219,7 +221,7 @@ describe('whether an answer may be drawn', () => {
         tableOf(
           [
             { kind: 'receipt', net_quantity: '10' },
-            { kind: 'issue', net_quantity: null },
+            { kind: 'sale', net_quantity: null },
           ],
           ['net_quantity'],
           ['kind'],

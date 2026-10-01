@@ -135,7 +135,7 @@ export const backend = {
       },
       {
         recorded_day: '2026-09-08T00:00:00.000',
-        kind: 'issue',
+        kind: 'sale',
         net_quantity: '-4',
         movement_count: '1',
       },
@@ -313,7 +313,7 @@ function rowsFor(body: QuestionBody): Record<string, RowValue>[] {
       if (grouping.shape === 'day') {
         row[grouping.column] = `2026-09-0${index + 1}T00:00:00.000`;
       } else if (grouping.shape === 'category') {
-        row[grouping.column] = index === 0 ? 'receipt' : 'issue';
+        row[grouping.column] = index === 0 ? 'receipt' : 'sale';
       } else {
         row[grouping.codeColumn] = `W-${index + 1}`;
         row[grouping.nameColumn] = `the W-${index + 1} widget`;

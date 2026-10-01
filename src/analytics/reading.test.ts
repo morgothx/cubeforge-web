@@ -89,16 +89,17 @@ describe('reading an answer', () => {
   it('reads a measure that arrived as a number, and a signed one', () => {
     const reading = readAnswer(
       [
-        { kind: 'issue', net_quantity: -4 },
+        { kind: 'sale', net_quantity: -4 },
         { kind: 'receipt', net_quantity: '-4.5' },
+        // Ordered by their grouping cell, so `receipt` is read back first.
       ],
       composed(['net_quantity'], ['kind']),
       vocabulary,
     );
 
     expect(reading.ok && reading.table.rows.map((row) => row[1])).toEqual([
-      { kind: 'measure', value: -4 },
       { kind: 'measure', value: -4.5 },
+      { kind: 'measure', value: -4 },
     ]);
   });
 
@@ -186,7 +187,7 @@ describe('reading an answer', () => {
         },
         {
           recorded_day: '2026-09-08T00:00:00.000',
-          kind: 'issue',
+          kind: 'sale',
           net_quantity: '-4',
         },
       ],
@@ -208,8 +209,8 @@ describe('reading an answer', () => {
           ),
         ),
     ).toEqual([
-      ['2026-09-08', 'issue', -4],
       ['2026-09-08', 'receipt', 10],
+      ['2026-09-08', 'sale', -4],
       ['2026-09-09', 'receipt', 6],
     ]);
   });

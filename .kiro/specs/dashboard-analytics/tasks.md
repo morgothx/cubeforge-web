@@ -373,7 +373,7 @@ the one the design proposed, field for field.
     Notes.
   - _Requirements: 9.5, 10.2, 10.3, 10.4_
 
-- [ ] 6.2 See it answer against the running platform
+- [x] 6.2 See it answer against the running platform
   - **Prerequisite:** a person who can sign in, holding a membership in a
     tenant whose movements have been exported. Arrange it with the platform's
     own tooling: provision the tenant and its first administrator, set a
@@ -788,3 +788,74 @@ the one the design proposed, field for field.
   no models; `steering/structure.md` lists the directories this feature's group
   of features added and no longer says no feature has been specified;
   `steering/product.md` records the two analytics routes.
+- **6.2** — Measured against the running platform on **2026-10-01**.
+
+  **How the evidence was arranged**, entirely through the platform's own
+  routes and commands — nothing written into the database by hand, so what the
+  dashboard read is what a real tenant would see:
+  `docker compose up` → `pnpm db:migrate` → `pnpm db:bootstrap` →
+  `pnpm ops:bootstrap-operator founder@cubeforge.local` → `POST /auth/credentials`
+  with the setup token → `POST /auth/sign-in` → `POST /tenants` (Northwind,
+  `943bb1c3-c151-4059-82c1-2129cb2a3ea5`) → `PUT .../inventory/products/{W-1,W-2}`
+  and `.../locations/MAIN` → `POST .../api-keys` → `POST .../inventory/movements/batch`
+  → `pnpm ops:export` → `pnpm ops:analytics-catalogue`.
+
+  `scripts/demo-seed.ts` was deliberately **not** used: it writes rows directly
+  and says so in its own documentation, which is the one thing this task forbids.
+
+  **THE OPEN QUESTION, ANSWERED: on hand does not count movements after the
+  period's end.** It is cumulative up to and including that end, and no further.
+
+  Inputs: five movements, all *recorded* 2026-10-01, with `occurredAt` set to
+  2026-09-05 receipt +10, 09-06 receipt +5, 09-07 receipt +7 (W-2), 09-08 sale
+  −3, and **09-20 receipt +100** — the last one outside the period asked about.
+  Transactional stock afterwards: W-1 112, W-2 7.
+
+  Asking `on_hand_quantity` by `product` for 2026-09-01..2026-09-10:
+  - `by: occurred` → W-1 `"12"` (10 + 5 − 3), W-2 `"7"`. The +100 that occurred
+    on the 20th is **not** in it.
+  - `by: recorded` → `rows: []`. Everything was recorded on 10-01, after the
+    period ended, so nothing falls inside it at all.
+  - Cross-checks: 09-06..09-06 by occurred → `"15"` (10 + 5 only);
+    09-25..09-30 by occurred → `"112"` (the whole history) with
+    `net_quantity: null` beside it.
+
+  So requirement 2.4's wording is right as written — it claims only "movements
+  from before this period as well as within it", and claims nothing about
+  after. No change needed.
+
+  **The fixtures matched the platform in every respect but one.** Identical:
+  the vocabulary body field for field (three measures with their `cumulative`
+  flags, five groupings with shapes and columns, `readBy`, `longestPeriodDays`
+  366, `calendar` UTC); measures as decimal strings; days as
+  `YYYY-MM-DDT00:00:00.000` with no zone; absence as `null`; a labelled
+  grouping filling `product_code` and `product_name`; `completeThrough` as an
+  ISO instant; refusal bodies as `{statusCode, message, field}` with `field`
+  `measures` for an unknown name and `period` for a reversed or over-long one,
+  the message text matching what the harness builds. Both `servedFrom` values
+  occur in the wild — the live overview was served `exported-objects`, a
+  prepared rollup answered `prepared`.
+
+  **The difference: the fixtures used a movement kind the platform refuses.**
+  Its kinds are `receipt`, `sale` and `adjustment`
+  (`src/domain/inventory/movement.ts`); `issue` is answered `unknown-kind` by
+  the sync API, which is how this was found — a recorded batch reported one row
+  rejected. Fixed in the harness first, as this task requires: 14 replacements
+  across `test/handlers.ts` and four spec files. Four ordering expectations
+  flipped with it, because `sale` sorts **after** `receipt` where `issue`
+  sorted before — the orderings were right all along and only their fixtures
+  were wrong.
+
+  **Both views answered from the real platform.** The overview drew W-1 ·
+  the W-1 widget 112 and W-2 · the W-2 widget 7, with the cumulative note,
+  "Complete through 1 Oct 2026, 16:57 UTC" and "Answered by reading the
+  exported data"; the explorer answered a composition of `net_quantity` by
+  `occurred_day` and `kind`, with the day column naming UTC, days as
+  "5 Sept 2026", and the real kinds `receipt` and `sale`.
+
+  The Claude in Chrome extension was not connected, so the two views were
+  rendered by the application's own components in jsdom with the harness shut
+  off and one shim standing in for the dev server's proxy — the real request
+  layer, reader and chart planner, against the real API. Worth repeating in a
+  browser when the extension is available; nothing observed suggests it would
+  differ.
