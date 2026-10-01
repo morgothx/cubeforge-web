@@ -211,3 +211,91 @@ describe('an action the application offered and the backend refuses', () => {
     ).toBeInTheDocument();
   });
 });
+
+/**
+ * The analytics, walked end to end.
+ *
+ * Every piece below has its own test, and each knows one thing: the composer
+ * offers the vocabulary's names, the answer view renders eight states, the
+ * queries ask once per showing. What none of them can see is that a person who
+ * signs in with nothing in hand can reach an answer at all — the standing, the
+ * tenant, the vocabulary, the address and the question have to line up in that
+ * order, and any one of them out of step leaves somebody looking at a frame
+ * with nothing in it.
+ */
+function anAnalyticsBackendWithTwoTenants() {
+  server.use(
+    http.post('/api/auth/sign-in', () =>
+      HttpResponse.json({
+        accessToken: 'access-journey',
+        refreshToken: 'refresh-journey',
+        sessionExpiresAt: '2026-08-19T00:15:00.000Z',
+      }),
+    ),
+    http.get('/api/me', () =>
+      HttpResponse.json({
+        personId: 'person-caller',
+        email: 'caller@example.com',
+        isOperator: false,
+        memberships: [
+          { tenantId: 't-acme', tenantName: 'Acme', role: 'viewer' },
+          { tenantId: 't-globex', tenantName: 'Globex', role: 'viewer' },
+        ],
+      }),
+    ),
+  );
+}
+
+describe('the analytics journey', () => {
+  it('signs in, reads the overview, composes a question, and takes it to another tenant', async () => {
+    anAnalyticsBackendWithTwoTenants();
+    start();
+
+    await signIn();
+    expect(await findActingIn('Acme')).toHaveTextContent('viewer');
+
+    // A viewer reaches the analytics: the platform admits every tenant role.
+    await user.click(
+      within(screen.getByRole('navigation', { name: /section/i })).getByRole(
+        'link',
+        { name: /analytics/i },
+      ),
+    );
+
+    // The overview answers both of its questions without being asked anything.
+    await waitFor(() => {
+      expect(screen.getAllByRole('table')).toHaveLength(2);
+    });
+
+    await user.click(
+      within(
+        screen.getByRole('navigation', { name: /analytics views/i }),
+      ).getByRole('link', { name: 'Explore' }),
+    );
+
+    // A question of their own, composed from what the platform offers.
+    await user.click(
+      await screen.findByRole('checkbox', { name: 'net_quantity' }),
+    );
+    await user.click(screen.getByRole('checkbox', { name: 'kind' }));
+    await user.click(screen.getByRole('button', { name: /^ask$/i }));
+
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+
+    // And the same question, asked of another tenant, by switching.
+    await user.click(
+      within(screen.getByRole('navigation', { name: /tenant/i })).getByRole(
+        'link',
+        { name: /^Globex/ },
+      ),
+    );
+
+    expect(await findActingIn('Globex')).toBeInTheDocument();
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole('navigation', { name: /analytics views/i }),
+      ).getByRole('link', { name: 'Explore' }),
+    ).toHaveAttribute('href', '/t/t-globex/analytics/explore');
+  });
+});

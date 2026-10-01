@@ -359,7 +359,7 @@ the one the design proposed, field for field.
 
 ## 6. Validation
 
-- [ ] 6.1 Walk the whole journey, and hold the exclusions by scan
+- [x] 6.1 Walk the whole journey, and hold the exclusions by scan
   - The journey test covers: sign in, the overview, the explorer, an asked
     composition, and another tenant.
   - Scans hold the exclusions:
@@ -754,3 +754,37 @@ the one the design proposed, field for field.
   tables and asserted two, which raced the overview's second answer; it now
   waits for both. Worth inheriting by any test asserting a count of things that
   arrive separately.
+- **6.1** — **A validation task passes on the first run, which is exactly why
+  the probes are the evidence.** The journey and both scans were green before
+  anything was verified, because the behaviour they describe already existed.
+  Five probes were required to turn each of them red.
+
+  **The exclusions are claims about absence**, and absence is what no ordinary
+  test notices losing: nothing fails the day a "Rebuild now" button appears.
+  So `src/exclusions.test.ts` reads the source. It is a file the design's plan
+  did not name — the same deviation 3.2 and 4.1 made, and for the same reason:
+  a rule checked nowhere is a rule nobody keeps.
+
+  **The export scan removes the platform's own words first.** `never-exported`,
+  `exported-objects` and the two sentences about data not having arrived are
+  the platform's vocabulary, not an action, and ESM's `export` keyword is every
+  second line. What remains after removing those is a use this feature never
+  sanctioned.
+
+  **Both scans carry a positive control** — that they match some modules, and
+  that they read enough source — because a rule over an empty set passes
+  forever. The control bites when the analytics pattern is pointed at nothing.
+
+  Five probes bit: a mutation hook imported into `overview.ts`, a "Rebuild now"
+  control on the overview, an `/analytics/exports` route named in `endpoints.ts`,
+  the analytics scan pointed at no module, and the panel's analytics link sent
+  to the members listing (the journey).
+
+  **Counts at this point:** 455 tests across 48 files. All four gates clean —
+  `lint`, `typecheck`, `test`, `build` (309.35 kB of JS, 96.05 kB gzipped;
+  103.02 kB of CSS, 16.79 kB gzipped).
+
+  Documents corrected: the design brief no longer says the semantic layer has
+  no models; `steering/structure.md` lists the directories this feature's group
+  of features added and no longer says no feature has been specified;
+  `steering/product.md` records the two analytics routes.

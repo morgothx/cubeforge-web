@@ -1,6 +1,6 @@
 # Product
 
-*Updated: 2026-08-18*
+*Updated: 2026-09-26*
 
 ## What this is
 
@@ -53,7 +53,15 @@ POST /auth/sign-in          → { accessToken, refreshToken, sessionExpiresAt }
 GET  /me                    → { personId, email, isOperator, memberships[] }
 POST /auth/refresh          → a new pair, and the old refresh token dies
 POST /auth/sign-out         → ends this session, or every session
+
+GET  /tenants/:id/analytics/vocabulary → what may be asked of this tenant
+POST /tenants/:id/analytics/questions  → one composed question, one answer
 ```
+
+The two analytics routes are the whole of this dashboard's access to the
+semantic layer. The vocabulary states which measures and groupings exist, what
+they are called and how long a period may be; the dashboard offers exactly
+that and defines nothing of its own.
 
 `GET /me` is the first call a signed-in client makes, and the reason the
 `caller-identity` feature exists on the API side: a token names a person and

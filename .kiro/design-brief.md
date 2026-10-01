@@ -16,12 +16,13 @@ It is a **portfolio project**, built to demonstrate multi-tenancy, role-based
 authorization and AWS-shaped architecture. Both repositories are public and are
 meant to read as production code.
 
-**What is built today is the shell around the analytics, not the analytics.**
-There are no charts, no metrics and no queries yet: the semantic layer is
-configured in infrastructure but has no models. Anyone designing this should
-treat the current product as *the administrative core of a SaaS platform* —
-identity, tenants, roles and membership — with a clearly marked space where the
-analytics will later live.
+**The analytics are built.** The semantic layer defines the platform's
+measures and groupings, the API publishes them through a vocabulary route and
+answers composed questions, and the dashboard has an overview and an explorer
+that draw the answers as tables and charts. The administrative core — identity,
+tenants, roles and membership — is still the foundation everything else rests
+on, and every figure on screen comes from the semantic layer through the API:
+the dashboard defines no metric of its own.
 
 ## 2. Who uses it, and what they are actually doing
 
